@@ -9,24 +9,54 @@ A powerlifter's notebook: OpenPowerlifting record on the home page, meet countdo
 - One-password auth: signed session cookie, enforced for every route by `src/proxy.ts`
 - OpenPowerlifting data fetched server-side from `openpowerlifting.org/api/liftercsv/<username>`, cached for a day
 
-## Local development
+## Development principles
+
+### Branches
+
+- `main` always works. Nobody commits to it directly.
+- Every change gets its own short-lived branch and reaches `main` through a pull request.
+- No `develop` branch — with two of us it's an extra step for no gain.
+
+### Branch names
+
+| Prefix     | For                                   | Example                 |
+| ---------- | ------------------------------------- | ----------------------- |
+| `feature/` | New functionality                     | `feature/user-accounts` |
+| `fix/`     | Bug fixes                             | `fix/timer-reset`       |
+| `chore/`   | Tidy-ups, dependencies, config, docs  | `chore/update-readme`   |
+
+Lowercase, words separated by hyphens.
+
+### Everyday routine
 
 ```bash
-npm install
-npm run dev
+git switch main
+git pull                                  # start from the latest main
+git switch -c feature/user-accounts       # new branch for this change
+
+# ...make changes...
+git add .
+git commit -m "Add sign-up screen"
+git push -u origin feature/user-accounts  # first push of the branch
 ```
 
-Local config lives in `.env.local` (gitignored — see `.env.example`). Without `DATABASE_URL` the app still runs; data pages show a setup notice. Once Vercel + Neon are connected, replace it with real values via `vercel env pull .env.local`, then `npm run db:push` to create the tables.
+Then open a pull request on GitHub, review it, and merge. Afterwards:
 
-## One-time setup (Vercel + Neon + GitHub)
+```bash
+git switch main
+git pull
+git branch -d feature/user-accounts       # delete the local copy
+```
 
-1. Push this repo to GitHub as a **private** repo.
-2. On [vercel.com](https://vercel.com), import the repo as a new project.
-3. In the Vercel project: **Storage → Create Database → Neon** — this injects `DATABASE_URL` automatically.
-4. In **Settings → Environment Variables**, add `APP_PASSWORD` (your login password) and `SESSION_SECRET` (any long random string, e.g. `openssl rand -base64 32`).
-5. Redeploy, then locally: `vercel env pull .env.local` and `npm run db:push` to create the tables.
-6. Open the app, log in, go to **Settings** and paste your OpenPowerlifting profile URL.
+### Keeping a branch up to date
 
-## Privacy
+If `main` has moved on while you're working, bring those changes into your branch:
 
-Everything except `/login` requires a valid session cookie (180-day expiry, httpOnly, signed with `SESSION_SECRET`). The privacy test after any deploy: open the production URL in an incognito window — every route should land on the login page.
+```bash
+git pull origin main
+```
+
+### Pull requests
+
+- One change per pull request — easier to review and easier to undo.
+- Keep branches short-lived; merge little and often rather than one big branch at the end.
