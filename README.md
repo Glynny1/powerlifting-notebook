@@ -1,12 +1,11 @@
 # Powerlifting Notebook
 
-A powerlifter's notebook: OpenPowerlifting record on the home page, meet countdown and attempt planner, six-phase warm-ups with tick-off exercises and timers, technique cues, rehab work, a bodyweight tracker, and a daily-calories tracker. Password-gated, mobile-first. Forked from Marc's personal powerlifting hub.
+A powerlifter's notebook: OpenPowerlifting record on the home page, meet countdown and attempt planner, six-phase warm-ups with tick-off exercises and timers, technique cues, rehab work, a bodyweight tracker, and a daily-calories tracker. Mobile-first. Forked from Marc's personal powerlifting hub.
 
 ## Stack
 
 - Next.js (App Router) + TypeScript + Tailwind, deployed on Vercel
 - Neon Postgres via Drizzle ORM (`npm run db:push` syncs the schema)
-- One-password auth: signed session cookie, enforced for every route by `src/proxy.ts`
 - OpenPowerlifting data fetched server-side from `openpowerlifting.org/api/liftercsv/<username>`, cached for a day
 
 ## Development principles

@@ -5,7 +5,7 @@ import { LIFTS, liftLabel } from "@/lib/lifts";
 import { MAX_KEYS, MEET_DATE_KEY } from "@/lib/meet";
 import { OPL_USERNAME_KEY } from "@/lib/opl";
 import { getSetting } from "@/lib/settings";
-import { logout, saveMeetPrep, saveOplUsername } from "./actions";
+import { saveMeetPrep, saveOplUsername } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -160,21 +160,6 @@ export default async function SettingsPage({
         >
           Edit rehab
         </Link>
-      </section>
-
-      <section className="rounded-xl border border-hairline bg-surface p-5">
-        <h2 className="font-medium">Session</h2>
-        <p className="mt-1 text-sm text-secondary">
-          Signs this device out. You&apos;ll need the password to get back in.
-        </p>
-        <form action={logout} className="mt-4">
-          <button
-            type="submit"
-            className="rounded-md border border-hairline px-4 py-2 text-sm font-medium text-accent transition-colors duration-150 ease-out hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          >
-            Log out
-          </button>
-        </form>
       </section>
     </div>
   );

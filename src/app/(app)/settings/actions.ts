@@ -1,9 +1,7 @@
 "use server";
 
 import { updateTag } from "next/cache";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { SESSION_COOKIE } from "@/lib/auth";
 import { LIFTS } from "@/lib/lifts";
 import { MAX_KEYS, MEET_DATE_KEY, parseMaxKg } from "@/lib/meet";
 import { OPL_USERNAME_KEY } from "@/lib/opl";
@@ -32,9 +30,4 @@ export async function saveMeetPrep(formData: FormData) {
     await setSetting(MAX_KEYS[lift], parsed === null ? "" : String(parsed));
   }
   redirect("/settings?saved=meet");
-}
-
-export async function logout() {
-  (await cookies()).delete(SESSION_COOKIE);
-  redirect("/login");
 }
