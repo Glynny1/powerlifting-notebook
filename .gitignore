@@ -18,6 +18,9 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# Cloudflare (wrangler dev)
+.wrangler/
+
 # Metro
 .metro-health-check*
 
