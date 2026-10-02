@@ -1,4 +1,5 @@
 import { Stack, useRouter } from "expo-router";
+import { StyleSheet, View } from "react-native";
 import HeaderButton from "@/components/HeaderButton";
 import { useStackOptions } from "@/lib/navigation";
 
@@ -12,11 +13,15 @@ export default function HomeStack() {
           title: "Notebook",
           headerLargeTitle: true,
           headerRight: () => (
-            <HeaderButton
-              icon="settings-outline"
-              accessibilityLabel="Settings"
-              onPress={() => router.push("/settings")}
-            />
+            <View style={styles.actions}>
+              {/* Placeholder until accounts exist; it doesn't do anything yet */}
+              <HeaderButton title="Login" outlined onPress={() => {}} />
+              <HeaderButton
+                icon="settings-outline"
+                accessibilityLabel="Settings"
+                onPress={() => router.push("/settings")}
+              />
+            </View>
           ),
         }}
       />
@@ -24,3 +29,7 @@ export default function HomeStack() {
     </Stack>
   );
 }
+
+const styles = StyleSheet.create({
+  actions: { flexDirection: "row", alignItems: "center", gap: 12 },
+});

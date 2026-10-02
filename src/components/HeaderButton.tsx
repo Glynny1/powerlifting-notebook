@@ -7,11 +7,13 @@ import { useColors } from "@/lib/theme";
 export default function HeaderButton({
   title,
   icon,
+  outlined,
   onPress,
   accessibilityLabel,
 }: {
   title?: string;
   icon?: ComponentProps<typeof Ionicons>["name"];
+  outlined?: boolean;
   onPress: () => void;
   accessibilityLabel?: string;
 }) {
@@ -22,15 +24,27 @@ export default function HeaderButton({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? title}
       hitSlop={10}
-      style={({ pressed }) => [styles.button, { opacity: pressed ? 0.5 : 1 }]}
+      style={({ pressed }) => [
+        styles.button,
+        outlined && [styles.outlined, { borderColor: c.accent }],
+        { opacity: pressed ? 0.5 : 1 },
+      ]}
     >
       {icon && <Ionicons name={icon} size={22} color={c.foreground} />}
-      {title && <Text style={[styles.text, { color: c.accent }]}>{title}</Text>}
+      {title && (
+        <Text
+          style={[styles.text, outlined && styles.outlinedText, { color: c.accent }]}
+        >
+          {title}
+        </Text>
+      )}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   button: { paddingHorizontal: 6, minHeight: 32, justifyContent: "center" },
+  outlined: { borderWidth: 1.5, borderRadius: 999, paddingHorizontal: 14 },
   text: { fontSize: 17, fontWeight: "600" },
+  outlinedText: { fontSize: 15 },
 });
