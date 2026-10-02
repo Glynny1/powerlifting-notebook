@@ -26,7 +26,7 @@ export default async function CueLiftPage({
   if (!db) {
     return (
       <Notice title="Database not connected">
-        Cues are stored in the database. Connect Neon and set DATABASE_URL,
+        Cues are stored in the database. Connect Supabase and set DATABASE_URL,
         then run npm run db:push.
       </Notice>
     );

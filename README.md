@@ -5,7 +5,7 @@ A powerlifter's notebook: OpenPowerlifting record on the home page, meet countdo
 ## Stack
 
 - Next.js (App Router) + TypeScript + Tailwind, deployed on Vercel
-- Neon Postgres via Drizzle ORM (`npm run db:push` syncs the schema)
+- Supabase Postgres via Drizzle ORM (`npm run db:push` syncs the schema, `npm run db:seed` adds dummy data)
 - OpenPowerlifting data fetched server-side from `openpowerlifting.org/api/liftercsv/<username>`, cached for a day
 
 ## Development principles

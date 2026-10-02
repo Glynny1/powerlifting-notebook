@@ -14,7 +14,7 @@ export default async function CaloriesPage() {
   if (!db) {
     return (
       <Notice title="Database not connected">
-        Calorie entries are stored in the database. Connect Neon and set
+        Calorie entries are stored in the database. Connect Supabase and set
         DATABASE_URL, then run npm run db:push.
       </Notice>
     );
