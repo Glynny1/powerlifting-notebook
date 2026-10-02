@@ -1,6 +1,4 @@
 import Papa from "papaparse";
-import { getDb } from "./db";
-import { getSetting } from "./settings";
 
 export const OPL_USERNAME_KEY = "opl_username";
 
@@ -30,11 +28,7 @@ export type OplStats = {
   meetCount: number;
 };
 
-export type OplData =
-  | { state: "no-db" }
-  | { state: "unset" }
-  | { state: "error"; message: string }
-  | { state: "ok"; username: string; stats: OplStats; meets: OplMeet[] };
+export type OplRecord = { stats: OplStats; meets: OplMeet[] };
 
 function num(value: string | undefined): number | null {
   if (!value) return null;
@@ -47,39 +41,41 @@ function best(values: (number | null)[]): number | null {
   return finite.length ? Math.max(...finite) : null;
 }
 
-export async function getOplData(): Promise<OplData> {
-  if (!getDb()) return { state: "no-db" };
+// Accepts a pasted profile URL like https://www.openpowerlifting.org/u/name
+export function parseOplUsername(input: string): string {
+  const trimmed = input.trim();
+  const fromUrl = trimmed.match(/openpowerlifting\.org\/u\/([^/?#]+)/i);
+  return (fromUrl ? fromUrl[1] : trimmed).toLowerCase();
+}
 
-  const username = await getSetting(OPL_USERNAME_KEY);
-  if (!username) return { state: "unset" };
+export function oplProfileUrl(username: string): string {
+  return `https://www.openpowerlifting.org/u/${encodeURIComponent(username)}`;
+}
 
-  let csv: string;
+// Throws an Error with a user-facing message when the record can't be loaded
+export async function fetchOplRecord(username: string): Promise<OplRecord> {
+  let res: Response;
   try {
-    const res = await fetch(
-      `https://www.openpowerlifting.org/api/liftercsv/${encodeURIComponent(username)}`,
-      { next: { revalidate: 86400, tags: ["opl"] } }
+    res = await fetch(
+      `https://www.openpowerlifting.org/api/liftercsv/${encodeURIComponent(username)}`
     );
-    if (res.status === 404) {
-      return {
-        state: "error",
-        message: `No lifter found for “${username}” — check the username in Settings.`,
-      };
-    }
-    if (!res.ok) {
-      return {
-        state: "error",
-        message: `OpenPowerlifting responded with ${res.status}. Try again later.`,
-      };
-    }
-    csv = await res.text();
   } catch {
-    return {
-      state: "error",
-      message: "Couldn't reach openpowerlifting.org. Try again later.",
-    };
+    throw new Error("Couldn't reach openpowerlifting.org. Try again later.");
+  }
+  if (res.status === 404) {
+    throw new Error(
+      `No lifter found for “${username}” — check the username in Settings.`
+    );
+  }
+  if (!res.ok) {
+    throw new Error(
+      `OpenPowerlifting responded with ${res.status}. Try again later.`
+    );
   }
 
-  const parsed = Papa.parse<RawRow>(csv.trim(), { header: true });
+  const parsed = Papa.parse<RawRow>((await res.text()).trim(), {
+    header: true,
+  });
   const meets: OplMeet[] = parsed.data
     .filter((row) => row.Date)
     .map((row) => ({
@@ -107,5 +103,5 @@ export async function getOplData(): Promise<OplData> {
     meetCount: meets.length,
   };
 
-  return { state: "ok", username, stats, meets };
+  return { stats, meets };
 }

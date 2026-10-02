@@ -1,13 +1,15 @@
-import { loadEnvConfig } from "@next/env";
+import { existsSync } from "node:fs";
 import { defineConfig } from "drizzle-kit";
 
-loadEnvConfig(process.cwd());
+if (existsSync(".env.local")) process.loadEnvFile(".env.local");
+
+// drizzle-kit runs its schema queries in parallel, which hangs on Supabase's
+// transaction pooler (6543); the session pooler (5432) on the same host handles it
+const url = process.env.DATABASE_URL?.replace(/:6543\//, ":5432/");
 
 export default defineConfig({
-  schema: "./src/lib/db/schema.ts",
+  schema: "./db/schema.ts",
   out: "./drizzle",
   dialect: "postgresql",
-  dbCredentials: {
-    url: process.env.DATABASE_URL!,
-  },
+  dbCredentials: { url: url! },
 });

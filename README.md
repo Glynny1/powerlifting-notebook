@@ -1,12 +1,13 @@
 # Powerlifting Notebook
 
-A powerlifter's notebook: OpenPowerlifting record on the home page, meet countdown and attempt planner, six-phase warm-ups with tick-off exercises and timers, technique cues, rehab work, a bodyweight tracker, and a daily-calories tracker. Mobile-first. Forked from Marc's personal powerlifting hub.
+A powerlifter's notebook: OpenPowerlifting record on the home page, meet countdown and attempt planner, six-phase warm-ups with tick-off exercises and timers, technique cues, rehab work, a bodyweight tracker, and a daily-calories tracker. A native app for iPhone and Android, supporting the two latest OS versions (iOS 26+, Android 16+). Forked from Marc's personal powerlifting hub.
 
 ## Stack
 
-- Next.js (App Router) + TypeScript + Tailwind, deployed on Vercel
-- Supabase Postgres via Drizzle ORM (`npm run db:push` syncs the schema, `npm run db:seed` adds dummy data)
-- OpenPowerlifting data fetched server-side from `openpowerlifting.org/api/liftercsv/<username>`, cached for a day
+- Expo (React Native) + Expo Router + TypeScript — `npx expo start`, then open in Expo Go or press `w` for the browser
+- Supabase: the app talks to it directly with `@supabase/supabase-js`; TanStack Query caches everything on the phone and queues edits made offline
+- Drizzle owns the schema in `db/` (`npm run db:push` syncs it, `npm run db:seed` adds dummy data)
+- OpenPowerlifting record fetched on the phone from `openpowerlifting.org/api/liftercsv/<username>`, cached for a day
 
 ## Development principles
 
@@ -18,11 +19,12 @@ A powerlifter's notebook: OpenPowerlifting record on the home page, meet countdo
 
 ### Branch names
 
-| Prefix     | For                                   | Example                 |
-| ---------- | ------------------------------------- | ----------------------- |
-| `feature/` | New functionality                     | `feature/user-accounts` |
-| `fix/`     | Bug fixes                             | `fix/timer-reset`       |
-| `chore/`   | Tidy-ups, dependencies, config, docs  | `chore/update-readme`   |
+| Prefix      | For                                           | Example                 |
+| ----------- | --------------------------------------------- | ----------------------- |
+| `feature/`  | New functionality                             | `feature/user-accounts` |
+| `fix/`      | Bug fixes                                     | `fix/timer-reset`       |
+| `refactor/` | Restructuring code without changing behaviour | `refactor/expo-app`     |
+| `chore/`    | Tidy-ups, dependencies, config, docs          | `chore/update-readme`   |
 
 Lowercase, words separated by hyphens.
 
