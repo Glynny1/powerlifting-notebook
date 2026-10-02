@@ -3,6 +3,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import AppTabs from "@/components/AppTabs";
 import { persistOptions, queryClient } from "@/data/queryClient";
+import { useAuthLinks } from "@/lib/auth";
 import { useColors, useIsDark } from "@/lib/theme";
 
 // Writes made offline are saved with the cache; send them once it's restored
@@ -12,6 +13,7 @@ const resumeQueuedWrites = () =>
     .then(() => queryClient.invalidateQueries());
 
 export default function RootLayout() {
+  useAuthLinks();
   const c = useColors();
   const base = useIsDark() ? DarkTheme : DefaultTheme;
   const theme = {
