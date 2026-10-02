@@ -101,3 +101,6 @@ export function formatSeconds(total: number): string {
   const s = total % 60;
   return `${m}:${String(s).padStart(2, "0")}`;
 }
+
+// Rehab uses the same step system as one flat list per lift
+export const REHAB_PLACEHOLDER = "e.g. Banded hip distraction";
