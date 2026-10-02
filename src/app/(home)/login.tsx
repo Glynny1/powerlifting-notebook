@@ -2,10 +2,8 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Stack, useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import { Keyboard, Pressable, StyleSheet, TextInput, View } from "react-native";
-import AppleButton from "@/components/AppleButton";
 import { SetupNotice } from "@/components/Loadable";
 import { Button, Card, Divider, Field, Screen, styles as ui, Txt } from "@/components/ui";
-import { signInWithApple } from "@/lib/appleSignIn";
 import {
   signInWithEmail,
   signInWithProvider,
@@ -142,19 +140,13 @@ export default function LoginScreen() {
         <Divider style={styles.orLine} />
       </View>
 
-      <View style={styles.providers}>
-        <Button
-          title="Continue with Google"
-          variant="ghost"
-          onPress={() => void run(() => signInWithProvider("google"))}
-          disabled={busy}
-          icon={<Ionicons name="logo-google" size={18} color={c.foreground} />}
-        />
-        <AppleButton
-          onPress={() => void run(signInWithApple)}
-          disabled={busy}
-        />
-      </View>
+      <Button
+        title="Continue with Google"
+        variant="ghost"
+        onPress={() => void run(() => signInWithProvider("google"))}
+        disabled={busy}
+        icon={<Ionicons name="logo-google" size={18} color={c.foreground} />}
+      />
     </Screen>
   );
 }
@@ -166,5 +158,4 @@ const styles = StyleSheet.create({
   switch: { alignSelf: "center", paddingVertical: 4 },
   orRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   orLine: { flex: 1 },
-  providers: { gap: 12 },
 });

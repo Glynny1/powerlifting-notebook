@@ -14,7 +14,7 @@ export const supabase =
           storage: localStorage,
           autoRefreshToken: true,
           persistSession: true,
-          // On web, Google/Apple sign-in returns to the page with the session in the URL
+          // On web, Google sign-in returns to the page with the session in the URL
           detectSessionInUrl: Platform.OS === "web",
         },
       })

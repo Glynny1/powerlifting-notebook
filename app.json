@@ -10,8 +10,7 @@
     "ios": {
       "bundleIdentifier": "com.powerliftingnotebook.app",
       "deploymentTarget": "26.0",
-      "supportsTablet": false,
-      "usesAppleSignIn": true
+      "supportsTablet": false
     },
     "android": {
       "package": "com.powerliftingnotebook.app",

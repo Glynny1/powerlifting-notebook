@@ -34,7 +34,7 @@ export function useSession(): Session | null | undefined {
   );
 }
 
-// Where Supabase sends people back to after Google, Apple or an email link
+// Where Supabase sends people back to after Google or an email link
 function redirectUrl(): string {
   return Platform.OS === "web" ? window.location.origin : makeRedirectUri();
 }
@@ -73,10 +73,10 @@ export async function createSessionFromUrl(url: string): Promise<AuthResult> {
   return error ? { error: error.message } : {};
 }
 
-// Google everywhere, and Apple off iOS: a secure browser sheet that
-// returns to the app (on web the whole page redirects and comes back)
+// A secure browser sheet that returns to the app (on web the whole page
+// redirects and comes back)
 export async function signInWithProvider(
-  provider: "google" | "apple"
+  provider: "google"
 ): Promise<AuthResult> {
   if (Platform.OS === "web") {
     const { error } = await client().auth.signInWithOAuth({
