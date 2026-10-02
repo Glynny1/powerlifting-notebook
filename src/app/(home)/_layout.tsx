@@ -1,7 +1,30 @@
 import { Stack, useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
 import HeaderButton from "@/components/HeaderButton";
+import { signOut, useSession } from "@/lib/auth";
+import { confirmDestructive } from "@/lib/confirm";
 import { useStackOptions } from "@/lib/navigation";
+
+function AccountButton() {
+  const router = useRouter();
+  const session = useSession();
+  if (session) {
+    return (
+      <HeaderButton
+        title="Log out"
+        outlined
+        onPress={() =>
+          confirmDestructive("Log out of Powerlifting Notebook?", "Log out", () =>
+            void signOut()
+          )
+        }
+      />
+    );
+  }
+  return (
+    <HeaderButton title="Login" outlined onPress={() => router.push("/login")} />
+  );
+}
 
 export default function HomeStack() {
   const router = useRouter();
@@ -14,8 +37,7 @@ export default function HomeStack() {
           headerLargeTitle: true,
           headerRight: () => (
             <View style={styles.actions}>
-              {/* Placeholder until accounts exist; it doesn't do anything yet */}
-              <HeaderButton title="Login" outlined onPress={() => {}} />
+              <AccountButton />
               <HeaderButton
                 icon="settings-outline"
                 accessibilityLabel="Settings"
@@ -26,6 +48,7 @@ export default function HomeStack() {
         }}
       />
       <Stack.Screen name="settings" options={{ title: "Settings" }} />
+      <Stack.Screen name="login" options={{ title: "Log in" }} />
     </Stack>
   );
 }
