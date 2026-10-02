@@ -8,6 +8,7 @@ A powerlifter's notebook: OpenPowerlifting record on the home page, meet countdo
 - Supabase: the app talks to it directly with `@supabase/supabase-js`; TanStack Query caches everything on the phone and queues edits made offline
 - Drizzle owns the schema in `db/` (`npm run db:push` syncs it, `npm run db:seed` adds dummy data)
 - OpenPowerlifting record fetched on the phone from `openpowerlifting.org/api/liftercsv/<username>`, cached for a day
+- `website/` is the static site for powerliftingnotebook.com (home page and privacy policy), deployed by Cloudflare Pages from `main`
 
 ## Development principles
 
