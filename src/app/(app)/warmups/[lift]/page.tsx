@@ -25,7 +25,7 @@ export default async function WarmupLiftPage({
   if (!db) {
     return (
       <Notice title="Database not connected">
-        Warm-ups are stored in the database. Connect Neon and set DATABASE_URL,
+        Warm-ups are stored in the database. Connect Supabase and set DATABASE_URL,
         then run npm run db:push.
       </Notice>
     );

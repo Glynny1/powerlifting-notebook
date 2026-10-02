@@ -129,7 +129,7 @@ export default async function SettingsPage({
         </section>
       ) : (
         <Notice title="Database not connected">
-          Settings are stored in the database. Connect Neon and set
+          Settings are stored in the database. Connect Supabase and set
           DATABASE_URL, then run npm run db:push.
         </Notice>
       )}

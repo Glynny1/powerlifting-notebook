@@ -166,8 +166,8 @@ export default async function HomePage() {
   if (data.state === "no-db") {
     return (
       <Notice title="Almost there — no database yet">
-        Connect the Neon database (Vercel → Storage → Neon) and set DATABASE_URL,
-        then run npm run db:push.
+        Add your Supabase connection string to .env.local as DATABASE_URL, then
+        run npm run db:push.
       </Notice>
     );
   }

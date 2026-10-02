@@ -22,7 +22,7 @@ export default async function RehabEditorPage({
   if (!db) {
     return (
       <Notice title="Database not connected">
-        Rehab work is stored in the database. Connect Neon and set
+        Rehab work is stored in the database. Connect Supabase and set
         DATABASE_URL, then run npm run db:push.
       </Notice>
     );
