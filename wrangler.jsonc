@@ -1,0 +1,9 @@
+// Cloudflare Worker that serves the static site in website/ at powerliftingnotebook.com.
+// No Worker script: everything is a static file (/privacy serves privacy.html).
+{
+  "name": "powerlifting-notebook",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./website"
+  }
+}
