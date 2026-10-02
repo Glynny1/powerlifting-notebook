@@ -64,7 +64,7 @@ export async function fetchOplRecord(username: string): Promise<OplRecord> {
   }
   if (res.status === 404) {
     throw new Error(
-      `No lifter found for “${username}” — check the username in Settings.`
+      `No lifter found for “${username}”. Check the username in Settings.`
     );
   }
   if (!res.ok) {

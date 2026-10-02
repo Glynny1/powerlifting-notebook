@@ -49,7 +49,7 @@ export function formatCountdown(c: Countdown): string {
 export type AttemptPlan = { first: number; second: number; third: number };
 
 // Opener ≈91% (something you can triple), second ≈97%, third ≈101% of the
-// gym max — openers and seconds rounded down to 2.5kg, third to nearest.
+// gym max. Openers and seconds round down to 2.5kg, thirds to the nearest.
 export function planAttempts(maxKg: number): AttemptPlan {
   const down = (x: number) => Math.floor(x / 2.5) * 2.5;
   const nearest = (x: number) => Math.round(x / 2.5) * 2.5;

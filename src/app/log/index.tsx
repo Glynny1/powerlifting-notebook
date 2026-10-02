@@ -71,7 +71,7 @@ function CaloriesLog() {
   return (
     <>
       <Txt tone="secondary" style={ui.small}>
-        One number a day — the total you ate.
+        One number a day: the total you ate.
       </Txt>
       <Loadable query={query}>
         {(entries) => (

@@ -58,7 +58,7 @@ function AddStepForm({
       <Field
         value={note}
         onChangeText={setNote}
-        placeholder="Note — cues, setup, per side…"
+        placeholder="Note: cues, setup, per side…"
         accessibilityLabel="Note (optional)"
         style={ui.small}
       />
@@ -74,7 +74,7 @@ function AddStepForm({
         <Field
           value={reps}
           onChangeText={setReps}
-          placeholder="reps — 15, 8/side, 2×6"
+          placeholder="reps: 15, 8/side, 2×6"
           accessibilityLabel="Reps (optional)"
           style={[styles.reps, ui.small]}
         />

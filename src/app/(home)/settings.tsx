@@ -91,7 +91,7 @@ function MeetPrep({ initial }: { initial: Record<string, string> }) {
       </View>
       {saved && (
         <Txt tone="secondary" style={ui.small} accessibilityLiveRegion="polite">
-          Saved — the home page is up to date.
+          Saved. The home page is up to date.
         </Txt>
       )}
       <Button title="Save" onPress={submit} style={styles.save} />
@@ -120,8 +120,8 @@ function OplProfile({ initial }: { initial: string }) {
         OpenPowerlifting profile
       </Txt>
       <Txt tone="secondary" style={ui.small}>
-        Paste your profile URL or just the username — the part after
-        openpowerlifting.org/u/.
+        Paste your profile URL or just the username (the part after
+        openpowerlifting.org/u/).
       </Txt>
       <Field
         value={input}
@@ -138,7 +138,7 @@ function OplProfile({ initial }: { initial: string }) {
       />
       {saved && (
         <Txt tone="secondary" style={ui.small} accessibilityLiveRegion="polite">
-          Saved — the home page now shows this lifter.
+          Saved. The home page now shows this lifter.
         </Txt>
       )}
       <View style={styles.dateRow}>
