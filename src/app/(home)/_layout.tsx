@@ -11,6 +11,8 @@ export default function HomeStack() {
         options={{
           title: "Notebook",
           headerLargeTitle: true,
+          // Placeholder until accounts exist; it doesn't do anything yet
+          headerLeft: () => <HeaderButton title="Login" onPress={() => {}} />,
           headerRight: () => (
             <HeaderButton
               icon="settings-outline"
