@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+:root {
+  /* Neutrals: warm gray ramp, no pure black on pure white */
+  --background: #f9f9f7;
+  --surface: #fcfcfb;
+  --foreground: #0b0b0b;
+  --secondary: #52514e;
+  --muted: #898781;
+  --hairline: rgba(11, 11, 11, 0.1);
+  --gridline: #e1e0d9;
+  /* One accent, used sparingly (active tab, primary emphasis) */
+  --accent: #d03b3b;
+  /* Chart series — validated for the light surface */
+  --chart-weight: #2a78d6;
+  --chart-calories: #eb6834;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-secondary: var(--secondary);
+  --color-muted: var(--muted);
+  --color-hairline: var(--hairline);
+  --color-gridline: var(--gridline);
+  --color-accent: var(--accent);
+  --color-chart-weight: var(--chart-weight);
+  --color-chart-calories: var(--chart-calories);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0d0d0d;
+    --surface: #1a1a19;
+    --foreground: #ffffff;
+    --secondary: #c3c2b7;
+    --muted: #898781;
+    --hairline: rgba(255, 255, 255, 0.1);
+    --gridline: #2c2c2a;
+    --accent: #e66767;
+    --chart-weight: #3987e5;
+    --chart-calories: #d95926;
+  }
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+}
