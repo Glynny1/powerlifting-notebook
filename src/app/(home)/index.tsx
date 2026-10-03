@@ -27,7 +27,7 @@ function CountdownCard({ meetDate }: { meetDate: string }) {
         title="Your meet date has passed"
         action={{ label: "Set the next one", onPress: () => router.push("/settings") }}
       >
-        Hope it went well — put the next meet in Settings and the countdown
+        Hope it went well! Put the next meet in Settings and the countdown
         starts again.
       </Notice>
     );
@@ -117,7 +117,7 @@ function StatTile({ label, value }: { label: string; value: string }) {
       <Label>{label}</Label>
       <Txt style={styles.tileValue}>
         {value}
-        {value !== "—" && (
+        {value !== "-" && (
           <Txt tone="muted" style={ui.small}>
             {" "}kg
           </Txt>

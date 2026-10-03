@@ -112,7 +112,7 @@ export default function CueList({
         </View>
       ) : (
         <Txt tone="muted" style={[ui.small, styles.empty]}>
-          Nothing here yet — add the words that fix your {label.toLowerCase()}.
+          Nothing here yet. Add the words that fix your {label.toLowerCase()}.
         </Txt>
       )}
       <Divider style={styles.divider} />

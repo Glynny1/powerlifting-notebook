@@ -40,7 +40,7 @@ export default function WarmupsScreen() {
         }}
       />
       <Txt tone="secondary" style={ui.small}>
-        Dr John Rusin&apos;s six-phase warm-up — run it top to bottom, 6–10
+        Dr John Rusin&apos;s six-phase warm-up. Run it top to bottom, 6–10
         minutes.
       </Txt>
       <LiftPicker value={lift} onChange={setLift} />

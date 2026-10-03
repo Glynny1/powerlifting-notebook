@@ -35,7 +35,7 @@ export const WARMUP_PHASES = [
     phase: 6,
     title: "CNS stimulation",
     blurb:
-      "Quick explosive movements — jumps, fast skips, hops — to switch the nervous system on.",
+      "Quick explosive movements (jumps, fast skips, hops) to switch the nervous system on.",
     placeholder: "Box jumps x3",
   },
 ] as const;
@@ -50,7 +50,7 @@ export type WarmupStep = {
   note?: string; // coaching detail shown under the name
 };
 
-// Steps were stored as plain strings before ticking existed — accept both
+// Steps were stored as plain strings before ticking existed, so accept both
 export function normalizeSteps(raw: unknown): WarmupStep[] {
   if (!Array.isArray(raw)) return [];
   return raw

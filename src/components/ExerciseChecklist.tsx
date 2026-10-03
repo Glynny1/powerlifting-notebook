@@ -201,7 +201,7 @@ export default function ExerciseChecklist({
               ))
             ) : (
               <Txt tone="muted" style={ui.small}>
-                Nothing here yet — add exercises with Edit.
+                Nothing here yet. Add exercises with Edit.
               </Txt>
             )}
           </Card>

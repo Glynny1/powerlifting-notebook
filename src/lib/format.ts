@@ -1,5 +1,5 @@
 export function formatKg(value: number | null): string {
-  if (value === null) return "—";
+  if (value === null) return "-";
   return value % 1 === 0 ? value.toFixed(0) : value.toFixed(1);
 }
 
