@@ -22,14 +22,7 @@ function AccountButton() {
     );
   }
   return (
-    <View style={styles.actions}>
-      <HeaderButton
-        title="Sign up"
-        filled
-        onPress={() => router.push("/signup")}
-      />
-      <HeaderButton title="Login" outlined onPress={() => router.push("/login")} />
-    </View>
+    <HeaderButton title="Login" outlined onPress={() => router.push("/login")} />
   );
 }
 
