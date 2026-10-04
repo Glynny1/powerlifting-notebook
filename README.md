@@ -11,6 +11,7 @@ A powerlifter's notebook: OpenPowerlifting record on the home page, meet countdo
 - Row-level security is on for every table: signed-out visitors can't read or write anything, and the app shows a log in prompt instead
 - OpenPowerlifting record fetched on the phone from `openpowerlifting.org/api/liftercsv/<username>`, cached for a day
 - `website/` is the static site for powerliftingnotebook.com (home page and privacy policy), served by a Cloudflare Worker (`wrangler.jsonc`) that redeploys from `main`
+- Sign-up emails are sent through Resend from Supabase Auth; the branded templates in `supabase/templates/` are pasted into Supabase → Authentication → Emails
 
 ## Development principles
 
