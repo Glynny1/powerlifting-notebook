@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Confirm your email · Powerlifting Notebook</title>
+    <meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/icon.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <a class="brand" href="/">
+          <img src="/icon.png" alt="" width="36" height="36" />
+          Powerlifting Notebook
+        </a>
+      </header>
+
+      <main class="confirm" aria-live="polite">
+        <section id="ready" hidden>
+          <h1>Confirm your email</h1>
+          <p>One tap to finish setting up your account.</p>
+          <button id="confirm" class="button" type="button">Confirm my email</button>
+        </section>
+
+        <section id="working" hidden>
+          <h1>Confirming…</h1>
+        </section>
+
+        <section id="done" hidden>
+          <h1>You're all set</h1>
+          <p>
+            Your email is confirmed. Open Powerlifting Notebook on your phone
+            and log in with your email and password.
+          </p>
+        </section>
+
+        <section id="expired" hidden>
+          <h1>This link has expired</h1>
+          <p>
+            Confirmation links only work once and expire after a while. If
+            you've already confirmed, just log in. Otherwise, sign up again in
+            the app to get a fresh link.
+          </p>
+        </section>
+
+        <section id="failed" hidden>
+          <h1>Something went wrong</h1>
+          <p>
+            We couldn't confirm your email just now. Check your connection and
+            <a href="" id="retry">try again</a>.
+          </p>
+        </section>
+
+        <section id="missing" hidden>
+          <h1>Confirm your email</h1>
+          <p>
+            This page finishes setting up new accounts. Open it from the
+            "Confirm my email" button in your sign-up email.
+          </p>
+        </section>
+      </main>
+
+      <footer>
+        <nav aria-label="Footer">
+          <a href="/">Home</a>
+          <a href="/privacy">Privacy policy</a>
+        </nav>
+        © 2026 Powerlifting Notebook
+      </footer>
+    </div>
+
+    <script>
+      // Supabase project URL and its public (publishable) key. The key is meant
+      // to be public; row-level security protects the data, not the key.
+      const SUPABASE_URL = "https://uydcbyiljsojvlsnvwpd.supabase.co";
+      const SUPABASE_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5ZGNieWlsanNvanZsc252d3BkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NDcwMDIsImV4cCI6MjEwNjUyMzAwMn0.qt1zLAG8N3OBC2TF5D-odE4uer8K18Jh22vl2wI_iAs";
+
+      const params = new URLSearchParams(location.search);
+      const tokenHash = params.get("token_hash");
+      const type = params.get("type") || "email";
+
+      function show(id) {
+        for (const s of document.querySelectorAll("main section")) s.hidden = s.id !== id;
+      }
+
+      // Waits for a tap so email link scanners can't use up the one-time link
+      async function confirmEmail() {
+        show("working");
+        try {
+          const res = await fetch(SUPABASE_URL + "/auth/v1/verify", {
+            method: "POST",
+            headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+            body: JSON.stringify({ type, token_hash: tokenHash }),
+          });
+          if (res.ok) {
+            // The link can't be reused, so take it out of the address bar
+            history.replaceState(null, "", location.pathname);
+            show("done");
+          } else if (res.status === 403 || res.status === 400) {
+            show("expired");
+          } else {
+            show("failed");
+          }
+        } catch {
+          show("failed");
+        }
+      }
+
+      document.getElementById("confirm").addEventListener("click", confirmEmail);
+      document.getElementById("retry").addEventListener("click", (e) => {
+        e.preventDefault();
+        confirmEmail();
+      });
+      show(tokenHash ? "ready" : "missing");
+    </script>
+  </body>
+</html>
