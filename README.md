@@ -6,7 +6,8 @@ A powerlifter's notebook: OpenPowerlifting record on the home page, meet countdo
 
 - Expo (React Native) + Expo Router + TypeScript: run `npx expo start`, then open in Expo Go or press `w` for the browser
 - Supabase: the app talks to it directly with `@supabase/supabase-js`; TanStack Query caches everything on the phone and queues edits made offline
-- Drizzle owns the schema in `db/` (`npm run db:push` syncs it, `npm run db:seed` adds dummy data)
+- Drizzle owns the schema in `db/` (`npm run db:push` syncs it, `npm run db:sql` applies the functions and triggers in `db/sql/`, `npm run db:seed` adds dummy data)
+- Accounts use Supabase Auth, which stores only salted bcrypt hashes of passwords. Usernames live in the `profiles` table, created at sign-up by a trigger
 - Row-level security is on for every table: signed-out visitors can't read or write anything, and the app shows a log in prompt instead
 - OpenPowerlifting record fetched on the phone from `openpowerlifting.org/api/liftercsv/<username>`, cached for a day
 - `website/` is the static site for powerliftingnotebook.com (home page and privacy policy), served by a Cloudflare Worker (`wrangler.jsonc`) that redeploys from `main`

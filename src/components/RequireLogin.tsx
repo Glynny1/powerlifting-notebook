@@ -31,6 +31,10 @@ export default function RequireLogin({
       <Notice
         title={title}
         action={{ label: "Log in", onPress: () => router.push("/login") }}
+        secondaryAction={{
+          label: "Create account",
+          onPress: () => router.push("/signup"),
+        }}
       >
         {message}
       </Notice>

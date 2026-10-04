@@ -22,7 +22,14 @@ function AccountButton() {
     );
   }
   return (
-    <HeaderButton title="Login" outlined onPress={() => router.push("/login")} />
+    <View style={styles.actions}>
+      <HeaderButton
+        title="Sign up"
+        filled
+        onPress={() => router.push("/signup")}
+      />
+      <HeaderButton title="Login" outlined onPress={() => router.push("/login")} />
+    </View>
   );
 }
 
@@ -49,6 +56,7 @@ export default function HomeStack() {
       />
       <Stack.Screen name="settings" options={{ title: "Settings" }} />
       <Stack.Screen name="login" options={{ title: "Log in" }} />
+      <Stack.Screen name="signup" options={{ title: "Sign up" }} />
     </Stack>
   );
 }

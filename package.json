@@ -11,7 +11,8 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "db:push": "drizzle-kit push",
-    "db:seed": "tsx db/seed.ts"
+    "db:seed": "tsx db/seed.ts",
+    "db:sql": "tsx db/apply-sql.ts"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",

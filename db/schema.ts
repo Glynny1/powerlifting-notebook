@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  check,
   date,
   integer,
   jsonb,
@@ -9,8 +10,10 @@ import {
   primaryKey,
   serial,
   text,
+  timestamp,
+  uuid,
 } from "drizzle-orm/pg-core";
-import { authenticatedRole } from "drizzle-orm/supabase";
+import { authenticatedRole, authUid, authUsers } from "drizzle-orm/supabase";
 
 // Signed-out visitors can't read or write anything. Until rows belong to
 // individual accounts, every signed-in user shares the same notebook.
@@ -105,6 +108,36 @@ export const settings = pgTable(
     value: text("value").notNull(),
   },
   () => [signedInOnly()],
+);
+
+// One row per account, created by the on_auth_user_created trigger in
+// db/sql/profiles.sql from the username given at sign-up. Usernames are
+// stored lowercase, so uniqueness ignores capitals.
+export const profiles = pgTable(
+  "profiles",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .references(() => authUsers.id, { onDelete: "cascade" }),
+    username: text("username").notNull().unique(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    check("username_format", sql`${t.username} ~ '^[a-z0-9_]{3,20}$'`),
+    pgPolicy("users read their own profile", {
+      for: "select",
+      to: authenticatedRole,
+      using: sql`${t.id} = ${authUid}`,
+    }),
+    pgPolicy("users update their own profile", {
+      for: "update",
+      to: authenticatedRole,
+      using: sql`${t.id} = ${authUid}`,
+      withCheck: sql`${t.id} = ${authUid}`,
+    }),
+  ],
 );
 
 export type Cue = typeof cues.$inferSelect;
