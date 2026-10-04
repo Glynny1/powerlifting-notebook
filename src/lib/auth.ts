@@ -53,13 +53,28 @@ export async function signInWithEmail(
 
 export async function signUpWithEmail(
   email: string,
-  password: string
+  password: string,
+  username: string
 ): Promise<AuthResult> {
+  const { data: available, error: lookupError } = await client().rpc(
+    "username_available",
+    { name: username }
+  );
+  if (lookupError) return { error: lookupError.message };
+  if (!available) return { error: "That username is taken. Try another." };
+
+  // The username travels as sign-up metadata; a database trigger copies it
+  // into the profiles table. The password goes straight to Supabase Auth,
+  // which stores only a salted bcrypt hash of it.
   const { data, error } = await client().auth.signUp({
     email,
     password,
-    options: { emailRedirectTo: redirectUrl() },
+    options: { emailRedirectTo: redirectUrl(), data: { username } },
   });
+  // The profiles table rejected the username (someone took it a moment ago)
+  if (error?.message.includes("Database error saving new user")) {
+    return { error: "That username is taken. Try another." };
+  }
   if (error) return { error: error.message };
   // With email confirmation on, there's no session until the link is tapped
   return data.session

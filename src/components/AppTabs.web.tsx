@@ -8,6 +8,7 @@ import {
 } from "expo-router/ui";
 import type { ComponentProps } from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
+import { useSession } from "@/lib/auth";
 import { useColors } from "@/lib/theme";
 
 type IconName = ComponentProps<typeof Ionicons>["name"];
@@ -37,11 +38,17 @@ function TabButton({
 
 export default function AppTabs() {
   const c = useColors();
+  const session = useSession();
   return (
     <Tabs style={styles.tabs}>
       <TabSlot style={styles.slot} />
+      {/* Stays mounted (it defines the tabs) but hidden until signed in */}
       <TabList
-        style={[styles.bar, { backgroundColor: c.surface, borderColor: c.hairline }]}
+        style={[
+          styles.bar,
+          { backgroundColor: c.surface, borderColor: c.hairline },
+          !session && styles.hidden,
+        ]}
       >
         <TabTrigger name="(home)" href="/" asChild>
           <TabButton label="Home" icon="home-outline" />
@@ -72,6 +79,7 @@ const styles = StyleSheet.create({
     paddingTop: 6,
     paddingBottom: 8,
   },
+  hidden: { display: "none" },
   button: { flex: 1, alignItems: "center", gap: 2 },
   label: { fontSize: 11, fontWeight: "600" },
 });

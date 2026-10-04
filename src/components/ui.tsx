@@ -231,10 +231,12 @@ export function Notice({
   title,
   children,
   action,
+  secondaryAction,
 }: {
   title: string;
   children: ReactNode;
   action?: { label: string; onPress: () => void };
+  secondaryAction?: { label: string; onPress: () => void };
 }) {
   return (
     <Card>
@@ -242,12 +244,17 @@ export function Notice({
       <Txt tone="secondary" style={styles.small}>
         {children}
       </Txt>
-      {action && (
-        <Button
-          title={action.label}
-          onPress={action.onPress}
-          style={styles.noticeButton}
-        />
+      {(action || secondaryAction) && (
+        <View style={styles.noticeActions}>
+          {action && <Button title={action.label} onPress={action.onPress} />}
+          {secondaryAction && (
+            <Button
+              title={secondaryAction.label}
+              variant="ghost"
+              onPress={secondaryAction.onPress}
+            />
+          )}
+        </View>
       )}
     </Card>
   );
@@ -307,6 +314,6 @@ export const styles = StyleSheet.create({
     fontVariant: ["tabular-nums"],
   },
   noticeTitle: { fontWeight: "600" },
-  noticeButton: { alignSelf: "flex-start", marginTop: 12 },
+  noticeActions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 },
   tabular: { fontVariant: ["tabular-nums"] },
 });

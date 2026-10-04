@@ -1,11 +1,14 @@
 import { NativeTabs } from "expo-router/unstable-native-tabs";
+import { useSession } from "@/lib/auth";
 import { useColors } from "@/lib/theme";
 
-// The platform's own tab bar: Liquid Glass on iOS, Material on Android
+// The platform's own tab bar: Liquid Glass on iOS, Material on Android.
+// Hidden until someone is signed in; signed-out visitors only get Home.
 export default function AppTabs() {
   const c = useColors();
+  const session = useSession();
   return (
-    <NativeTabs tintColor={c.accent}>
+    <NativeTabs tintColor={c.accent} hidden={!session}>
       <NativeTabs.Trigger name="(home)">
         <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
