@@ -6,12 +6,15 @@ import HeaderButton from "@/components/HeaderButton";
 import { Loadable } from "@/components/Loadable";
 import { LiftPicker } from "@/components/Segmented";
 import { Screen } from "@/components/ui";
+import RequireLogin from "@/components/RequireLogin";
 import { keys, useRehab, useSaveRehab } from "@/data/queries";
 import type { Lift } from "@/lib/lifts";
+import { useSession } from "@/lib/auth";
 import { useRefresh } from "@/lib/navigation";
 import { REHAB_PLACEHOLDER, type WarmupStep } from "@/lib/warmup";
 
 export default function RehabScreen() {
+  const session = useSession();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [lift, setLift] = useState<Lift>("squat");
@@ -27,37 +30,44 @@ export default function RehabScreen() {
     <Screen refreshing={refreshing} onRefresh={onRefresh}>
       <Stack.Screen
         options={{
-          headerRight: () => (
-            <HeaderButton
-              title="Edit"
-              accessibilityLabel="Edit rehab"
-              onPress={() =>
-                router.push({ pathname: "/rehab/edit", params: { lift } })
-              }
-            />
-          ),
+          headerRight: session
+            ? () => (
+                <HeaderButton
+                  title="Edit"
+                  accessibilityLabel="Edit rehab"
+                  onPress={() =>
+                    router.push({ pathname: "/rehab/edit", params: { lift } })
+                  }
+                />
+              )
+            : undefined,
         }}
       />
-      <LiftPicker value={lift} onChange={setLift} />
-      <Loadable query={query}>
-        {(steps) => (
-          <ExerciseChecklist
-            sections={[{ id: 1, placeholder: REHAB_PLACEHOLDER, steps }]}
-            onToggle={(_section, index, done) =>
-              save.mutate({
-                lift,
-                steps: latest().map((s, i) => (i === index ? { ...s, done } : s)),
-              })
-            }
-            onReset={() =>
-              save.mutate({
-                lift,
-                steps: latest().map((s) => ({ ...s, done: false })),
-              })
-            }
-          />
-        )}
-      </Loadable>
+      <RequireLogin
+        title="Log in to see your rehab"
+        message="Your rehab exercises are saved to your account. Log in to tick them off and make them your own."
+      >
+        <LiftPicker value={lift} onChange={setLift} />
+        <Loadable query={query}>
+          {(steps) => (
+            <ExerciseChecklist
+              sections={[{ id: 1, placeholder: REHAB_PLACEHOLDER, steps }]}
+              onToggle={(_section, index, done) =>
+                save.mutate({
+                  lift,
+                  steps: latest().map((s, i) => (i === index ? { ...s, done } : s)),
+                })
+              }
+              onReset={() =>
+                save.mutate({
+                  lift,
+                  steps: latest().map((s) => ({ ...s, done: false })),
+                })
+              }
+            />
+          )}
+        </Loadable>
+      </RequireLogin>
     </Screen>
   );
 }

@@ -6,13 +6,16 @@ import HeaderButton from "@/components/HeaderButton";
 import { Loadable } from "@/components/Loadable";
 import { LiftPicker } from "@/components/Segmented";
 import { Screen, styles as ui, Txt } from "@/components/ui";
+import RequireLogin from "@/components/RequireLogin";
 import type { StepsBySection } from "@/data/api";
 import { keys, useSaveWarmups, useWarmups } from "@/data/queries";
 import type { Lift } from "@/lib/lifts";
+import { useSession } from "@/lib/auth";
 import { useRefresh } from "@/lib/navigation";
 import { warmupSections } from "@/lib/warmup";
 
 export default function WarmupsScreen() {
+  const session = useSession();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [lift, setLift] = useState<Lift>("squat");
@@ -28,44 +31,51 @@ export default function WarmupsScreen() {
     <Screen refreshing={refreshing} onRefresh={onRefresh}>
       <Stack.Screen
         options={{
-          headerRight: () => (
-            <HeaderButton
-              title="Edit"
-              accessibilityLabel="Edit warm-ups"
-              onPress={() =>
-                router.push({ pathname: "/warmups/edit", params: { lift } })
-              }
-            />
-          ),
+          headerRight: session
+            ? () => (
+                <HeaderButton
+                  title="Edit"
+                  accessibilityLabel="Edit warm-ups"
+                  onPress={() =>
+                    router.push({ pathname: "/warmups/edit", params: { lift } })
+                  }
+                />
+              )
+            : undefined,
         }}
       />
-      <Txt tone="secondary" style={ui.small}>
-        Dr John Rusin&apos;s six-phase warm-up. Run it top to bottom, 6–10
-        minutes.
-      </Txt>
-      <LiftPicker value={lift} onChange={setLift} />
-      <Loadable query={query}>
-        {(data) => (
-          <ExerciseChecklist
-            sections={warmupSections(data)}
-            onToggle={(phase, index, done) => {
-              const steps = (latest()[phase] ?? []).map((s, i) =>
-                i === index ? { ...s, done } : s
-              );
-              save.mutate({ lift, phases: { [phase]: steps } });
-            }}
-            onReset={() => {
-              const phases = Object.fromEntries(
-                Object.entries(latest()).map(([phase, steps]) => [
-                  phase,
-                  steps.map((s) => ({ ...s, done: false })),
-                ])
-              );
-              save.mutate({ lift, phases });
-            }}
-          />
-        )}
-      </Loadable>
+      <RequireLogin
+        title="Log in to see your warm-ups"
+        message="Your six-phase warm-ups are saved to your account. Log in to tick them off and make them your own."
+      >
+        <Txt tone="secondary" style={ui.small}>
+          Dr John Rusin&apos;s six-phase warm-up. Run it top to bottom, 6–10
+          minutes.
+        </Txt>
+        <LiftPicker value={lift} onChange={setLift} />
+        <Loadable query={query}>
+          {(data) => (
+            <ExerciseChecklist
+              sections={warmupSections(data)}
+              onToggle={(phase, index, done) => {
+                const steps = (latest()[phase] ?? []).map((s, i) =>
+                  i === index ? { ...s, done } : s
+                );
+                save.mutate({ lift, phases: { [phase]: steps } });
+              }}
+              onReset={() => {
+                const phases = Object.fromEntries(
+                  Object.entries(latest()).map(([phase, steps]) => [
+                    phase,
+                    steps.map((s) => ({ ...s, done: false })),
+                  ])
+                );
+                save.mutate({ lift, phases });
+              }}
+            />
+          )}
+        </Loadable>
+      </RequireLogin>
     </Screen>
   );
 }

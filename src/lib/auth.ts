@@ -24,6 +24,10 @@ supabase?.auth.onAuthStateChange((_event, session) => {
   listeners.forEach((notify) => notify());
 });
 
+export function currentSession(): Session | null | undefined {
+  return current;
+}
+
 export function useSession(): Session | null | undefined {
   return useSyncExternalStore(
     (notify) => {

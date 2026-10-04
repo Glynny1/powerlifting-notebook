@@ -4,6 +4,7 @@ import { Keyboard, Pressable, StyleSheet, View } from "react-native";
 import DateField from "@/components/DateField";
 import { Loadable } from "@/components/Loadable";
 import { Button, Card, Field, Screen, styles as ui, Txt } from "@/components/ui";
+import RequireLogin from "@/components/RequireLogin";
 import { useSaveSettings, useSettings } from "@/data/queries";
 import { LIFTS, liftLabel } from "@/lib/lifts";
 import { MAX_KEYS, MEET_DATE_KEY, parseMaxKg } from "@/lib/meet";
@@ -163,14 +164,19 @@ export default function SettingsScreen() {
   const settings = useSettings();
   return (
     <Screen>
-      <Loadable query={settings}>
-        {(values) => (
-          <>
-            <MeetPrep initial={values} />
-            <OplProfile initial={values[OPL_USERNAME_KEY] ?? ""} />
-          </>
-        )}
-      </Loadable>
+      <RequireLogin
+        title="Log in to change your settings"
+        message="Your meet date, gym maxes and OpenPowerlifting profile are saved to your account."
+      >
+        <Loadable query={settings}>
+          {(values) => (
+            <>
+              <MeetPrep initial={values} />
+              <OplProfile initial={values[OPL_USERNAME_KEY] ?? ""} />
+            </>
+          )}
+        </Loadable>
+      </RequireLogin>
     </Screen>
   );
 }

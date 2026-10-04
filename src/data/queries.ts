@@ -8,6 +8,7 @@ import {
   type QueryKey,
 } from "@tanstack/react-query";
 import type { Lift } from "@/lib/lifts";
+import { useSession } from "@/lib/auth";
 import { fetchOplRecord } from "@/lib/opl";
 import { supabase } from "@/lib/supabase";
 import type { WarmupStep } from "@/lib/warmup";
@@ -16,8 +17,12 @@ import type { Cue, CueLift, DailyEntry, StepsBySection } from "./api";
 
 const DAY = 24 * 60 * 60 * 1000;
 
-// Nothing to fetch until .env.local points at Supabase
-const enabled = supabase !== null;
+// Nothing to fetch until Supabase is configured and someone is signed in;
+// the database returns nothing to signed-out visitors anyway
+function useSignedIn() {
+  const session = useSession();
+  return supabase !== null && !!session;
+}
 
 export const keys = {
   warmups: (lift: Lift) => ["warmups", lift] as const,
@@ -30,22 +35,22 @@ export const keys = {
 };
 
 export const useWarmups = (lift: Lift) =>
-  useQuery({ queryKey: keys.warmups(lift), queryFn: () => api.fetchWarmups(lift), enabled });
+  useQuery({ queryKey: keys.warmups(lift), queryFn: () => api.fetchWarmups(lift), enabled: useSignedIn() });
 
 export const useRehab = (lift: Lift) =>
-  useQuery({ queryKey: keys.rehab(lift), queryFn: () => api.fetchRehab(lift), enabled });
+  useQuery({ queryKey: keys.rehab(lift), queryFn: () => api.fetchRehab(lift), enabled: useSignedIn() });
 
 export const useCues = (lift: CueLift) =>
-  useQuery({ queryKey: keys.cues(lift), queryFn: () => api.fetchCues(lift), enabled });
+  useQuery({ queryKey: keys.cues(lift), queryFn: () => api.fetchCues(lift), enabled: useSignedIn() });
 
 export const useWeights = () =>
-  useQuery({ queryKey: keys.weights, queryFn: api.fetchWeights, enabled });
+  useQuery({ queryKey: keys.weights, queryFn: api.fetchWeights, enabled: useSignedIn() });
 
 export const useCalories = () =>
-  useQuery({ queryKey: keys.calories, queryFn: api.fetchCalories, enabled });
+  useQuery({ queryKey: keys.calories, queryFn: api.fetchCalories, enabled: useSignedIn() });
 
 export const useSettings = () =>
-  useQuery({ queryKey: keys.settings, queryFn: api.fetchSettings, enabled });
+  useQuery({ queryKey: keys.settings, queryFn: api.fetchSettings, enabled: useSignedIn() });
 
 export const useOplRecord = (username: string | undefined) =>
   useQuery({

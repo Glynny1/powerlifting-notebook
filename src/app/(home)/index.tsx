@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { Loadable } from "@/components/Loadable";
+import RequireLogin from "@/components/RequireLogin";
 import { Card, Divider, Label, Notice, Screen, styles as ui, Txt } from "@/components/ui";
 import { useOplRecord, useSettings } from "@/data/queries";
 import { formatDate, formatKg, formatPlace, todayIso } from "@/lib/format";
@@ -238,21 +239,26 @@ export default function HomeScreen() {
 
   return (
     <Screen refreshing={refreshing} onRefresh={onRefresh}>
-      <Loadable query={settings}>
-        {(values) => {
-          const meetDate = values[MEET_DATE_KEY] || null;
-          const maxes = Object.fromEntries(
-            LIFTS.map((l) => [l, parseMaxKg(values[MAX_KEYS[l]] ?? null)])
-          ) as Record<Lift, number | null>;
-          return (
-            <>
-              {meetDate && <CountdownCard meetDate={meetDate} />}
-              <AttemptPlanner maxes={maxes} />
-              <OplSection username={username} />
-            </>
-          );
-        }}
-      </Loadable>
+      <RequireLogin
+        title="Welcome to Powerlifting Notebook"
+        message="Log in or create an account to start your notebook. Your meet prep, warm-ups, cues, rehab and bodyweight log will all live here."
+      >
+        <Loadable query={settings}>
+          {(values) => {
+            const meetDate = values[MEET_DATE_KEY] || null;
+            const maxes = Object.fromEntries(
+              LIFTS.map((l) => [l, parseMaxKg(values[MAX_KEYS[l]] ?? null)])
+            ) as Record<Lift, number | null>;
+            return (
+              <>
+                {meetDate && <CountdownCard meetDate={meetDate} />}
+                <AttemptPlanner maxes={maxes} />
+                <OplSection username={username} />
+              </>
+            );
+          }}
+        </Loadable>
+      </RequireLogin>
     </Screen>
   );
 }
