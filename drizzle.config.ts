@@ -12,4 +12,6 @@ export default defineConfig({
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: { url: url! },
+  // Supabase owns the anon/authenticated roles; only manage our policies
+  entities: { roles: { provider: "supabase" } },
 });

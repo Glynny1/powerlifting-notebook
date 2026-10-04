@@ -3,6 +3,7 @@ import CueList from "@/components/CueList";
 import { Loadable } from "@/components/Loadable";
 import { Segmented } from "@/components/Segmented";
 import { Screen } from "@/components/ui";
+import RequireLogin from "@/components/RequireLogin";
 import type { CueLift } from "@/data/api";
 import { useAddCue, useCues, useDeleteCue, useUpdateCue } from "@/data/queries";
 import { LIFTS, liftLabel } from "@/lib/lifts";
@@ -31,24 +32,29 @@ export default function CuesScreen() {
 
   return (
     <Screen refreshing={refreshing} onRefresh={onRefresh}>
-      <Segmented
-        options={groups}
-        value={lift}
-        onChange={setLift}
-        accessibilityLabel="Cue group"
-      />
-      <Loadable query={query}>
-        {(cues) => (
-          <CueList
-            label={label}
-            cues={cues}
-            placeholder={placeholders[lift]}
-            onAdd={(text) => add.mutate({ lift, text })}
-            onUpdate={(id, text) => update.mutate({ lift, id, text })}
-            onDelete={(id) => remove.mutate({ lift, id })}
-          />
-        )}
-      </Loadable>
+      <RequireLogin
+        title="Log in to see your cues"
+        message="Your technique cues for each lift are saved to your account."
+      >
+        <Segmented
+          options={groups}
+          value={lift}
+          onChange={setLift}
+          accessibilityLabel="Cue group"
+        />
+        <Loadable query={query}>
+          {(cues) => (
+            <CueList
+              label={label}
+              cues={cues}
+              placeholder={placeholders[lift]}
+              onAdd={(text) => add.mutate({ lift, text })}
+              onUpdate={(id, text) => update.mutate({ lift, id, text })}
+              onDelete={(id) => remove.mutate({ lift, id })}
+            />
+          )}
+        </Loadable>
+      </RequireLogin>
     </Screen>
   );
 }

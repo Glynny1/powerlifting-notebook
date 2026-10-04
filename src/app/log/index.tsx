@@ -3,6 +3,7 @@ import DailyLog, { type DailyLogConfig } from "@/components/DailyLog";
 import { Loadable } from "@/components/Loadable";
 import { Segmented } from "@/components/Segmented";
 import { Screen, styles as ui, Txt } from "@/components/ui";
+import RequireLogin from "@/components/RequireLogin";
 import {
   useCalories,
   useDeleteCalories,
@@ -95,13 +96,18 @@ export default function LogScreen() {
 
   return (
     <Screen refreshing={refreshing} onRefresh={onRefresh}>
-      <Segmented
-        options={trackers}
-        value={tracker}
-        onChange={setTracker}
-        accessibilityLabel="Tracker"
-      />
-      {tracker === "weight" ? <WeightLog /> : <CaloriesLog />}
+      <RequireLogin
+        title="Log in to see your log"
+        message="Your bodyweight and calorie entries are saved to your account."
+      >
+        <Segmented
+          options={trackers}
+          value={tracker}
+          onChange={setTracker}
+          accessibilityLabel="Tracker"
+        />
+        {tracker === "weight" ? <WeightLog /> : <CaloriesLog />}
+      </RequireLogin>
     </Screen>
   );
 }

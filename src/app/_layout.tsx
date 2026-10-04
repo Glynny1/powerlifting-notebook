@@ -3,14 +3,19 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import AppTabs from "@/components/AppTabs";
 import { persistOptions, queryClient } from "@/data/queryClient";
-import { useAuthLinks } from "@/lib/auth";
+import { currentSession, useAuthLinks } from "@/lib/auth";
 import { useColors, useIsDark } from "@/lib/theme";
 
-// Writes made offline are saved with the cache; send them once it's restored
-const resumeQueuedWrites = () =>
-  queryClient
-    .resumePausedMutations()
-    .then(() => queryClient.invalidateQueries());
+// Writes made offline are saved with the cache; send them once it's restored.
+// If nobody is signed in, drop the saved copy instead.
+const resumeQueuedWrites = async () => {
+  if (currentSession() === null) {
+    queryClient.clear();
+    return;
+  }
+  await queryClient.resumePausedMutations();
+  await queryClient.invalidateQueries();
+};
 
 export default function RootLayout() {
   useAuthLinks();

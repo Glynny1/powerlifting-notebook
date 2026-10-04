@@ -5,6 +5,7 @@ import ExerciseEditor from "@/components/ExerciseEditor";
 import { Loadable } from "@/components/Loadable";
 import { LiftPicker } from "@/components/Segmented";
 import { Screen, styles as ui, Txt } from "@/components/ui";
+import RequireLogin from "@/components/RequireLogin";
 import type { StepsBySection } from "@/data/api";
 import { keys, useSaveWarmups, useWarmups } from "@/data/queries";
 import { isLift, type Lift } from "@/lib/lifts";
@@ -24,27 +25,32 @@ export default function WarmupEditorScreen() {
 
   return (
     <Screen>
-      <Txt tone="secondary" style={ui.small}>
-        Changes save straight away. The Warm-ups tab shows the clean, tickable
-        version.
-      </Txt>
-      <LiftPicker value={lift} onChange={setLift} />
-      <Loadable query={query}>
-        {(data) => (
-          <ExerciseEditor
-            sections={warmupSections(data)}
-            onAdd={(phase, step) =>
-              save.mutate({ lift, phases: { [phase]: [...phaseSteps(phase), step] } })
-            }
-            onRemove={(phase, index) =>
-              save.mutate({
-                lift,
-                phases: { [phase]: phaseSteps(phase).filter((_, i) => i !== index) },
-              })
-            }
-          />
-        )}
-      </Loadable>
+      <RequireLogin
+        title="Log in to edit your warm-ups"
+        message="Your warm-ups are saved to your account."
+      >
+        <Txt tone="secondary" style={ui.small}>
+          Changes save straight away. The Warm-ups tab shows the clean, tickable
+          version.
+        </Txt>
+        <LiftPicker value={lift} onChange={setLift} />
+        <Loadable query={query}>
+          {(data) => (
+            <ExerciseEditor
+              sections={warmupSections(data)}
+              onAdd={(phase, step) =>
+                save.mutate({ lift, phases: { [phase]: [...phaseSteps(phase), step] } })
+              }
+              onRemove={(phase, index) =>
+                save.mutate({
+                  lift,
+                  phases: { [phase]: phaseSteps(phase).filter((_, i) => i !== index) },
+                })
+              }
+            />
+          )}
+        </Loadable>
+      </RequireLogin>
     </Screen>
   );
 }
