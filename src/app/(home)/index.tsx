@@ -190,8 +190,9 @@ function Record({ record }: { record: OplRecord }) {
         <StatTile label="Deadlift" value={formatKg(stats.bestDeadlift)} />
       </View>
       <Label style={styles.sectionLabel}>Meet history</Label>
-      {meets.map((meet) => (
-        <MeetCard key={`${meet.date}-${meet.meetName}`} meet={meet} />
+      {meets.map((meet, i) => (
+        // OpenPowerlifting can list one meet twice (e.g. two divisions)
+        <MeetCard key={`${meet.date}-${meet.meetName}-${i}`} meet={meet} />
       ))}
     </>
   );
