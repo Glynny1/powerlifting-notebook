@@ -36,7 +36,7 @@ export default function RehabEditorScreen() {
         <Loadable query={query}>
           {(steps) => (
             <ExerciseEditor
-              sections={[{ id: 1, placeholder: REHAB_PLACEHOLDER, steps }]}
+              sections={[{ id: "rehab", placeholder: REHAB_PLACEHOLDER, steps }]}
               onAdd={(_section, step) =>
                 save.mutate({ lift, steps: [...latest(), step] })
               }

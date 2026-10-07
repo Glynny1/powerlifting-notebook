@@ -4,16 +4,18 @@
 import {
   useMutation,
   useQuery,
+  useQueryClient,
   type QueryClient,
   type QueryKey,
 } from "@tanstack/react-query";
-import type { Lift } from "@/lib/lifts";
+import { LIFTS, type Lift } from "@/lib/lifts";
 import { useSession } from "@/lib/auth";
 import { fetchOplRecord } from "@/lib/opl";
 import { supabase } from "@/lib/supabase";
-import type { WarmupStep } from "@/lib/warmup";
+import type { WarmupSection, WarmupStep } from "@/lib/warmup";
+import { sectionsFromTemplate } from "@/lib/warmupTemplates";
 import * as api from "./api";
-import type { Cue, CueLift, DailyEntry, StepsBySection } from "./api";
+import type { Cue, CueLift, DailyEntry } from "./api";
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -34,8 +36,8 @@ export const keys = {
   opl: (username: string) => ["opl", username] as const,
 };
 
-export const useWarmups = (lift: Lift) =>
-  useQuery({ queryKey: keys.warmups(lift), queryFn: () => api.fetchWarmups(lift), enabled: useSignedIn() });
+export const useWarmup = (lift: Lift) =>
+  useQuery({ queryKey: keys.warmups(lift), queryFn: () => api.fetchWarmup(lift), enabled: useSignedIn() });
 
 export const useRehab = (lift: Lift) =>
   useQuery({ queryKey: keys.rehab(lift), queryFn: () => api.fetchRehab(lift), enabled: useSignedIn() });
@@ -63,8 +65,8 @@ export const useOplRecord = (username: string | undefined) =>
 
 // Mutations are looked up by key, so their behaviour lives in
 // registerMutations() and these hooks only carry the types
-export const useSaveWarmups = () =>
-  useMutation<void, Error, { lift: Lift; phases: StepsBySection }>({
+export const useSaveWarmup = () =>
+  useMutation<void, Error, { lift: Lift; sections: WarmupSection[] }>({
     mutationKey: ["warmups", "save"],
   });
 export const useSaveRehab = () =>
@@ -129,13 +131,9 @@ export function registerMutations(qc: QueryClient) {
 
   define(
     ["warmups", "save"],
-    api.saveWarmups,
+    api.saveWarmup,
     (v) => keys.warmups(v.lift),
-    (v) =>
-      qc.setQueryData<StepsBySection>(keys.warmups(v.lift), (prev) => ({
-        ...prev,
-        ...v.phases,
-      }))
+    (v) => qc.setQueryData<WarmupSection[]>(keys.warmups(v.lift), v.sections)
   );
 
   define(
@@ -221,4 +219,37 @@ export function registerMutations(qc: QueryClient) {
         ...v,
       }))
   );
+}
+
+// Edits to one lift's warm-up. Each change is computed from the latest cached
+// sections (not a render's copy) and saved as the lift's whole warm-up.
+export function useWarmupActions(lift: Lift) {
+  const qc = useQueryClient();
+  const save = useSaveWarmup();
+  const latest = () =>
+    qc.getQueryData<WarmupSection[]>(keys.warmups(lift)) ?? [];
+
+  const update = (fn: (sections: WarmupSection[]) => WarmupSection[]) =>
+    save.mutate({ lift, sections: fn(latest()) });
+
+  // Optionally also starts any other lift that has no warm-up yet
+  const applyTemplate = async (templateId: string, allLifts: boolean) => {
+    save.mutate({ lift, sections: sectionsFromTemplate(templateId) });
+    if (!allLifts) return;
+    for (const other of LIFTS.filter((l) => l !== lift)) {
+      try {
+        const existing = await qc.ensureQueryData({
+          queryKey: keys.warmups(other),
+          queryFn: () => api.fetchWarmup(other),
+        });
+        if (existing.length === 0) {
+          save.mutate({ lift: other, sections: sectionsFromTemplate(templateId) });
+        }
+      } catch {
+        // Couldn't check that lift (e.g. offline); leave it to be set up later
+      }
+    }
+  };
+
+  return { update, applyTemplate };
 }

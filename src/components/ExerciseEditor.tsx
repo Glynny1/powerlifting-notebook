@@ -16,7 +16,7 @@ import {
   Txt,
 } from "./ui";
 
-function AddStepForm({
+export function AddStepForm({
   placeholder,
   onAdd,
 }: {
@@ -90,8 +90,8 @@ export default function ExerciseEditor({
   onRemove,
 }: {
   sections: ExerciseSection[];
-  onAdd: (sectionId: number, step: WarmupStep) => void;
-  onRemove: (sectionId: number, index: number) => void;
+  onAdd: (sectionId: string, step: WarmupStep) => void;
+  onRemove: (sectionId: string, index: number) => void;
 }) {
   const c = useColors();
   return (

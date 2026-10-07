@@ -1,53 +1,18 @@
-// Dr John Rusin's six-phase warm-up (6–10 minutes, run top to bottom)
-export const WARMUP_PHASES = [
-  {
-    phase: 1,
-    title: "Soft tissue work",
-    blurb: "Foam roll the sore or tight spots you'll be loading today.",
-    placeholder: "Foam roll quads",
-  },
-  {
-    phase: 2,
-    title: "Dynamic stretching",
-    blurb: "Dynamically stretch the areas you just rolled.",
-    placeholder: "Leg swings x10/side",
-  },
-  {
-    phase: 3,
-    title: "Corrective exercise",
-    blurb: "Multi-joint mobility work and skill drills.",
-    placeholder: "Deep goblet squat hold",
-  },
-  {
-    phase: 4,
-    title: "Muscle activation",
-    blurb:
-      "Bands or bodyweight to wake the target muscles up and build a strong mind-muscle connection.",
-    placeholder: "Banded glute bridge x15",
-  },
-  {
-    phase: 5,
-    title: "Movement pattern prep",
-    blurb: "Groove the exact patterns you're about to train.",
-    placeholder: "Empty bar squats x10",
-  },
-  {
-    phase: 6,
-    title: "CNS stimulation",
-    blurb:
-      "Quick explosive movements (jumps, fast skips, hops) to switch the nervous system on.",
-    placeholder: "Box jumps x3",
-  },
-] as const;
-
-export type WarmupPhaseNumber = (typeof WARMUP_PHASES)[number]["phase"];
-
 export type WarmupStep = {
   text: string;
   done: boolean;
   seconds?: number; // time-based → countdown timer
   reps?: string; // rep-based → static chip, e.g. "15", "8/side", "2×6"
   note?: string; // coaching detail shown under the name
+};
+
+// A lift's warm-up is an ordered list of sections the user controls, e.g.
+// the six phases of Dr John Rusin's warm-up, or one simple list
+export type WarmupSection = {
+  id: string;
+  title: string;
+  notes: string;
+  steps: WarmupStep[];
 };
 
 // Steps were stored as plain strings before ticking existed, so accept both
@@ -78,21 +43,30 @@ export function normalizeSteps(raw: unknown): WarmupStep[] {
     .filter((s): s is WarmupStep => s !== null);
 }
 
+// Section ids only need to be unique within one lift's warm-up
+export function makeId(): string {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+}
+
+export function normalizeSections(raw: unknown): WarmupSection[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((s) => s && typeof s === "object" && typeof s.title === "string")
+    .map((s) => ({
+      id: typeof s.id === "string" && s.id ? s.id : makeId(),
+      title: s.title.trim().slice(0, 60) || "Untitled section",
+      notes: typeof s.notes === "string" ? s.notes.trim().slice(0, 300) : "",
+      steps: normalizeSteps(s.steps),
+    }));
+}
+
+export function newSection(title: string, notes = ""): WarmupSection {
+  return { id: makeId(), title, notes, steps: [] };
+}
+
 // "15" reads better as "×15"; "8/side" and "2×6" stay as written
 export function formatReps(reps: string): string {
   return /^\d+$/.test(reps) ? `×${reps}` : reps;
-}
-
-// Section list for the shared exercise components
-export function warmupSections(stepsByPhase: Record<number, WarmupStep[]>) {
-  return WARMUP_PHASES.map((p) => ({
-    id: p.phase,
-    number: p.phase,
-    title: p.title,
-    blurb: p.blurb,
-    placeholder: p.placeholder,
-    steps: stepsByPhase[p.phase] ?? [],
-  }));
 }
 
 export function formatSeconds(total: number): string {

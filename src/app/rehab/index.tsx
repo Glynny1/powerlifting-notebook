@@ -51,7 +51,7 @@ export default function RehabScreen() {
         <Loadable query={query}>
           {(steps) => (
             <ExerciseChecklist
-              sections={[{ id: 1, placeholder: REHAB_PLACEHOLDER, steps }]}
+              sections={[{ id: "rehab", placeholder: REHAB_PLACEHOLDER, steps }]}
               onToggle={(_section, index, done) =>
                 save.mutate({
                   lift,
