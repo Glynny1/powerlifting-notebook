@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   check,
   date,
+  index,
   integer,
   jsonb,
   numeric,
@@ -12,102 +13,108 @@ import {
   text,
   timestamp,
   uuid,
+  type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import { authenticatedRole, authUid, authUsers } from "drizzle-orm/supabase";
 
-// Signed-out visitors can't read or write anything. Until rows belong to
-// individual accounts, every signed-in user shares the same notebook.
-const signedInOnly = () =>
-  pgPolicy("signed in users only", {
+// Every notebook row belongs to one account. The app never sends user_id:
+// the database fills it in from the signed-in user, and deleting an account
+// deletes its rows.
+const owner = () =>
+  uuid("user_id")
+    .notNull()
+    .default(sql`auth.uid()`)
+    .references(() => authUsers.id, { onDelete: "cascade" });
+
+// Signed-in users can only see and change their own rows; signed-out
+// visitors get nothing
+const ownRowsOnly = (userId: AnyPgColumn) =>
+  pgPolicy("users manage their own rows", {
     for: "all",
     to: authenticatedRole,
-    using: sql`true`,
-    withCheck: sql`true`,
+    using: sql`${userId} = ${authUid}`,
+    withCheck: sql`${userId} = ${authUid}`,
   });
 
-// One row per lift x warm-up phase (Rusin six-phase structure).
+type WarmupStepRow = {
+  text: string;
+  done: boolean;
+  seconds?: number;
+  reps?: string;
+  note?: string;
+};
+
+// One row per account x lift x warm-up phase (Rusin six-phase structure).
 // Steps carry their tick state; older rows may still hold plain strings,
 // so read through normalizeSteps().
 export const warmupPhases = pgTable(
   "warmup_phases",
   {
+    userId: owner(),
     lift: text("lift", { enum: ["squat", "bench", "deadlift"] }).notNull(),
     phase: integer("phase").notNull(),
-    steps: jsonb("steps")
-      .$type<
-        {
-          text: string;
-          done: boolean;
-          seconds?: number;
-          reps?: string;
-          note?: string;
-        }[]
-      >()
-      .notNull()
-      .default([]),
+    steps: jsonb("steps").$type<WarmupStepRow[]>().notNull().default([]),
   },
-  (t) => [primaryKey({ columns: [t.lift, t.phase] }), signedInOnly()],
+  (t) => [
+    primaryKey({ columns: [t.userId, t.lift, t.phase] }),
+    ownRowsOnly(t.userId),
+  ]
 );
 
-// Rehab mirrors the warm-up exercise system: one flat list per lift
+// Rehab mirrors the warm-up exercise system: one flat list per account x lift
 export const rehabSteps = pgTable(
   "rehab_steps",
   {
-    lift: text("lift", { enum: ["squat", "bench", "deadlift"] }).primaryKey(),
-    steps: jsonb("steps")
-      .$type<
-        {
-          text: string;
-          done: boolean;
-          seconds?: number;
-          reps?: string;
-          note?: string;
-        }[]
-      >()
-      .notNull()
-      .default([]),
+    userId: owner(),
+    lift: text("lift", { enum: ["squat", "bench", "deadlift"] }).notNull(),
+    steps: jsonb("steps").$type<WarmupStepRow[]>().notNull().default([]),
   },
-  () => [signedInOnly()],
+  (t) => [primaryKey({ columns: [t.userId, t.lift] }), ownRowsOnly(t.userId)]
 );
 
 export const cues = pgTable(
   "cues",
   {
     id: serial("id").primaryKey(),
+    userId: owner(),
     lift: text("lift", {
       enum: ["squat", "bench", "deadlift", "general"],
     }).notNull(),
     text: text("text").notNull(),
     position: integer("position").notNull().default(0),
   },
-  () => [signedInOnly()],
+  (t) => [index("cues_user_id_lift_idx").on(t.userId, t.lift), ownRowsOnly(t.userId)]
 );
 
+// One value per account per day
 export const weightEntries = pgTable(
   "weight_entries",
   {
-    date: date("date").primaryKey(),
+    userId: owner(),
+    date: date("date").notNull(),
     weightKg: numeric("weight_kg", { precision: 5, scale: 2 }).notNull(),
   },
-  () => [signedInOnly()],
+  (t) => [primaryKey({ columns: [t.userId, t.date] }), ownRowsOnly(t.userId)]
 );
 
 export const calorieEntries = pgTable(
   "calorie_entries",
   {
-    date: date("date").primaryKey(),
+    userId: owner(),
+    date: date("date").notNull(),
     calories: integer("calories").notNull(),
   },
-  () => [signedInOnly()],
+  (t) => [primaryKey({ columns: [t.userId, t.date] }), ownRowsOnly(t.userId)]
 );
 
 export const settings = pgTable(
   "settings",
   {
-    key: text("key").primaryKey(),
+    userId: owner(),
+    key: text("key").notNull(),
     value: text("value").notNull(),
   },
-  () => [signedInOnly()],
+  (t) => [primaryKey({ columns: [t.userId, t.key] }), ownRowsOnly(t.userId)]
 );
 
 // One row per account, created by the on_auth_user_created trigger in
@@ -137,7 +144,7 @@ export const profiles = pgTable(
       using: sql`${t.id} = ${authUid}`,
       withCheck: sql`${t.id} = ${authUid}`,
     }),
-  ],
+  ]
 );
 
 export type Cue = typeof cues.$inferSelect;

@@ -1,7 +1,9 @@
-// Fills the database with dummy data for local development.
-//   npm run db:seed              only runs on an empty database
-//   npm run db:seed -- --reset   wipes every table first
+// Fills one account's notebook with dummy data for local development.
+//   npm run db:seed -- --user glynny            only runs if that notebook is empty
+//   npm run db:seed -- --user you@example.com --reset   wipes that notebook first
+// --user takes an email address or a username. Other accounts are never touched.
 import { existsSync } from "node:fs";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import type { Lift } from "../src/lib/lifts";
@@ -179,10 +181,22 @@ const CALORIES = DAYS.filter((i) => i % 9 !== 4).map((i) => ({
     ) * 10,
 }));
 
+function argValue(name: string): string | undefined {
+  const i = process.argv.indexOf(name);
+  if (i !== -1) return process.argv[i + 1];
+  return process.argv.find((a) => a.startsWith(`${name}=`))?.split("=")[1];
+}
+
 async function main() {
   if (existsSync(".env.local")) process.loadEnvFile(".env.local");
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL is not set in .env.local");
+  const who = argValue("--user");
+  if (!who) {
+    console.error("Say whose notebook to fill: npm run db:seed -- --user <email or username>");
+    process.exitCode = 1;
+    return;
+  }
 
   const client = postgres(url, { prepare: false, max: 1 });
   const db = drizzle(client, { schema });
@@ -197,14 +211,25 @@ async function main() {
   ];
 
   try {
+    const [account] = await client`
+      select u.id from auth.users u
+      left join public.profiles p on p.id = u.id
+      where lower(u.email) = lower(${who}) or p.username = lower(${who})`;
+    if (!account) {
+      console.error(`No account found with the email or username "${who}".`);
+      process.exitCode = 1;
+      return;
+    }
+    const userId: string = account.id;
+
     if (!reset) {
       // One at a time: parallel queries on one connection hang on
       // Supabase's transaction pooler
       let rows = 0;
-      for (const t of tables) rows += await db.$count(t);
+      for (const t of tables) rows += await db.$count(t, eq(t.userId, userId));
       if (rows > 0) {
         console.error(
-          "The database already has data. Run `npm run db:seed -- --reset` to wipe it and reseed.",
+          `That notebook already has data. Add --reset to wipe it and reseed.`
         );
         process.exitCode = 1;
         return;
@@ -212,51 +237,54 @@ async function main() {
     }
 
     await db.transaction(async (tx) => {
-      if (reset) for (const t of tables) await tx.delete(t);
+      if (reset) {
+        for (const t of tables) await tx.delete(t).where(eq(t.userId, userId));
+      }
 
-      await tx
-        .insert(warmupPhases)
-        .values(
-          Object.entries(WARMUPS).flatMap(([lift, phases]) =>
-            phases.map((steps, i) => ({
-              lift: lift as Lift,
-              phase: i + 1,
-              steps,
-            })),
-          ),
-        );
-      await tx
-        .insert(rehabSteps)
-        .values(
-          Object.entries(REHAB).map(([lift, steps]) => ({
+      await tx.insert(warmupPhases).values(
+        Object.entries(WARMUPS).flatMap(([lift, phases]) =>
+          phases.map((steps, i) => ({
+            userId,
             lift: lift as Lift,
+            phase: i + 1,
             steps,
-          })),
-        );
+          }))
+        )
+      );
+      await tx.insert(rehabSteps).values(
+        Object.entries(REHAB).map(([lift, steps]) => ({
+          userId,
+          lift: lift as Lift,
+          steps,
+        }))
+      );
+      await tx.insert(cues).values(
+        Object.entries(CUES).flatMap(([lift, texts]) =>
+          texts.map((text, position) => ({
+            userId,
+            lift: lift as Lift | "general",
+            text,
+            position,
+          }))
+        )
+      );
+      await tx.insert(weightEntries).values(WEIGHTS.map((w) => ({ userId, ...w })));
       await tx
-        .insert(cues)
-        .values(
-          Object.entries(CUES).flatMap(([lift, texts]) =>
-            texts.map((text, position) => ({
-              lift: lift as Lift | "general",
-              text,
-              position,
-            })),
-          ),
-        );
-      await tx.insert(weightEntries).values(WEIGHTS);
-      await tx.insert(calorieEntries).values(CALORIES);
-      await tx.insert(settings).values([
-        { key: MEET_DATE_KEY, value: isoDaysFromToday(84) },
-        { key: MAX_KEYS.squat, value: "200" },
-        { key: MAX_KEYS.bench, value: "130" },
-        { key: MAX_KEYS.deadlift, value: "240" },
-      ]);
+        .insert(calorieEntries)
+        .values(CALORIES.map((c) => ({ userId, ...c })));
+      await tx.insert(settings).values(
+        [
+          { key: MEET_DATE_KEY, value: isoDaysFromToday(84) },
+          { key: MAX_KEYS.squat, value: "200" },
+          { key: MAX_KEYS.bench, value: "130" },
+          { key: MAX_KEYS.deadlift, value: "240" },
+        ].map((row) => ({ userId, ...row }))
+      );
     });
 
     console.log(
-      `Seeded warm-ups, rehab, ${Object.values(CUES).flat().length} cues, ` +
-        `${WEIGHTS.length} weight and ${CALORIES.length} calorie entries, and meet prep settings.`,
+      `Filled ${who}'s notebook: warm-ups, rehab, ${Object.values(CUES).flat().length} cues, ` +
+        `${WEIGHTS.length} weight and ${CALORIES.length} calorie entries, and meet prep settings.`
     );
   } finally {
     await client.end();

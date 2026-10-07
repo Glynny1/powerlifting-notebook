@@ -1,5 +1,9 @@
 // Every Supabase read and write the app makes. Steps arrays are always
 // written whole, so a retried or replayed write can't double-apply.
+//
+// Rows belong to the signed-in account: the database fills in user_id itself
+// (defaultToNull: false lets that default apply to upserts) and row-level
+// security means reads only ever return the current user's rows.
 import type { Lift } from "@/lib/lifts";
 import { supabase } from "@/lib/supabase";
 import { normalizeSteps, type WarmupStep } from "@/lib/warmup";
@@ -43,7 +47,7 @@ export async function saveWarmups(vars: {
     phase: Number(phase),
     steps,
   }));
-  check(await db().from("warmup_phases").upsert(rows, { onConflict: "lift,phase" }));
+  check(await db().from("warmup_phases").upsert(rows, { onConflict: "user_id,lift,phase", defaultToNull: false }));
 }
 
 // Rehab: one row per lift
@@ -59,7 +63,7 @@ export async function saveRehab(vars: {
   lift: Lift;
   steps: WarmupStep[];
 }): Promise<void> {
-  check(await db().from("rehab_steps").upsert(vars, { onConflict: "lift" }));
+  check(await db().from("rehab_steps").upsert(vars, { onConflict: "user_id,lift", defaultToNull: false }));
 }
 
 // Cues
@@ -106,7 +110,7 @@ export async function saveWeight(vars: DailyEntry) {
       .from("weight_entries")
       .upsert(
         { date: vars.date, weight_kg: vars.value.toFixed(2) },
-        { onConflict: "date" }
+        { onConflict: "user_id,date", defaultToNull: false }
       )
   );
 }
@@ -130,7 +134,7 @@ export async function saveCalories(vars: DailyEntry) {
   check(
     await db()
       .from("calorie_entries")
-      .upsert({ date: vars.date, calories: vars.value }, { onConflict: "date" })
+      .upsert({ date: vars.date, calories: vars.value }, { onConflict: "user_id,date", defaultToNull: false })
   );
 }
 
@@ -147,5 +151,5 @@ export async function fetchSettings(): Promise<Record<string, string>> {
 
 export async function saveSettings(values: Record<string, string>) {
   const rows = Object.entries(values).map(([key, value]) => ({ key, value }));
-  check(await db().from("settings").upsert(rows, { onConflict: "key" }));
+  check(await db().from("settings").upsert(rows, { onConflict: "user_id,key", defaultToNull: false }));
 }
