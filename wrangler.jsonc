@@ -1,9 +1,12 @@
-// Cloudflare Worker that serves the static site in website/ at powerliftingnotebook.com.
-// No Worker script: everything is a static file (/privacy serves privacy.html).
+// Cloudflare Worker for powerliftingnotebook.com: serves the static site in
+// website/ (/privacy serves privacy.html), and worker/index.js handles /api/
+// routes that aren't files.
 {
   "name": "powerlifting-notebook",
   "compatibility_date": "2026-10-01",
+  "main": "worker/index.js",
   "assets": {
-    "directory": "./website"
+    "directory": "./website",
+    "binding": "ASSETS"
   }
 }

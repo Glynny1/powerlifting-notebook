@@ -1,4 +1,5 @@
 import Papa from "papaparse";
+import { Platform } from "react-native";
 
 export const OPL_USERNAME_KEY = "opl_username";
 
@@ -41,11 +42,22 @@ function best(values: (number | null)[]): number | null {
   return finite.length ? Math.max(...finite) : null;
 }
 
-// Accepts a pasted profile URL like https://www.openpowerlifting.org/u/name
+// Accepts a pasted profile URL like https://www.openpowerlifting.org/u/name,
+// or a name typed with spaces ("John Haack" -> "johnhaack")
 export function parseOplUsername(input: string): string {
   const trimmed = input.trim();
   const fromUrl = trimmed.match(/openpowerlifting\.org\/u\/([^/?#]+)/i);
-  return (fromUrl ? fromUrl[1] : trimmed).toLowerCase();
+  return (fromUrl ? fromUrl[1] : trimmed).replace(/\s+/g, "").toLowerCase();
+}
+
+// Browsers can't read openpowerlifting.org directly (it doesn't allow
+// cross-site requests), so the web app goes through our Worker relay
+// (worker/index.js). Phones aren't affected and fetch it directly.
+function lifterCsvUrl(username: string): string {
+  const name = encodeURIComponent(username);
+  return Platform.OS === "web"
+    ? `https://powerliftingnotebook.com/api/opl/${name}`
+    : `https://www.openpowerlifting.org/api/liftercsv/${name}`;
 }
 
 export function oplProfileUrl(username: string): string {
@@ -56,9 +68,7 @@ export function oplProfileUrl(username: string): string {
 export async function fetchOplRecord(username: string): Promise<OplRecord> {
   let res: Response;
   try {
-    res = await fetch(
-      `https://www.openpowerlifting.org/api/liftercsv/${encodeURIComponent(username)}`
-    );
+    res = await fetch(lifterCsvUrl(username));
   } catch {
     throw new Error("Couldn't reach openpowerlifting.org. Try again later.");
   }

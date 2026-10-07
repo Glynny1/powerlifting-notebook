@@ -9,8 +9,8 @@ A powerlifter's notebook: OpenPowerlifting record on the home page, meet countdo
 - Drizzle owns the schema in `db/` (`npm run db:push` syncs it, `npm run db:sql` applies the functions and triggers in `db/sql/`, `npm run db:seed -- --user <email or username>` fills one account's notebook with dummy data)
 - Accounts use Supabase Auth, which stores only salted bcrypt hashes of passwords. Usernames live in the `profiles` table, created at sign-up by a trigger
 - Every notebook row belongs to an account (`user_id`, filled in by the database). Row-level security means people only ever see and change their own rows, new accounts start empty, deleting an account deletes its data, and signed-out visitors get nothing
-- OpenPowerlifting record fetched on the phone from `openpowerlifting.org/api/liftercsv/<username>`, cached for a day
-- `website/` is the static site for powerliftingnotebook.com (home page and privacy policy), served by a Cloudflare Worker (`wrangler.jsonc`) that redeploys from `main`
+- OpenPowerlifting record fetched on the phone from `openpowerlifting.org/api/liftercsv/<username>`, cached for a day. Browsers can't read that site directly, so the web app goes through `powerliftingnotebook.com/api/opl/<username>` (`worker/index.js`)
+- `website/` is the static site for powerliftingnotebook.com (home page and privacy policy), served by a Cloudflare Worker (`wrangler.jsonc`, `worker/`) that redeploys from `main`
 - Sign-up emails are sent through Resend from Supabase Auth; the branded templates in `supabase/templates/` are pasted into Supabase → Authentication → Emails
 
 ## Development principles
