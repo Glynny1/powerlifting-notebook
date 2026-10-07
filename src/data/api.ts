@@ -6,12 +6,16 @@
 // security means reads only ever return the current user's rows.
 import type { Lift } from "@/lib/lifts";
 import { supabase } from "@/lib/supabase";
-import { normalizeSteps, type WarmupStep } from "@/lib/warmup";
+import {
+  normalizeSections,
+  normalizeSteps,
+  type WarmupSection,
+  type WarmupStep,
+} from "@/lib/warmup";
 
 export type CueLift = Lift | "general";
 export type Cue = { id: number; lift: CueLift; text: string; position: number };
 export type DailyEntry = { date: string; value: number };
-export type StepsBySection = Record<number, WarmupStep[]>;
 
 function db() {
   if (!supabase) throw new Error("Supabase is not configured");
@@ -27,27 +31,24 @@ function check<T>(result: {
   return result.data as T;
 }
 
-// Warm-ups: one row per lift × phase
+// Warm-ups: one row per lift holding its whole list of sections
 
-export async function fetchWarmups(lift: Lift): Promise<StepsBySection> {
+export async function fetchWarmup(lift: Lift): Promise<WarmupSection[]> {
   const rows = check(
-    await db().from("warmup_phases").select("phase, steps").eq("lift", lift)
+    await db().from("warmups").select("sections").eq("lift", lift)
   );
-  return Object.fromEntries(
-    rows.map((r) => [r.phase as number, normalizeSteps(r.steps)])
-  );
+  return normalizeSections(rows[0]?.sections);
 }
 
-export async function saveWarmups(vars: {
+export async function saveWarmup(vars: {
   lift: Lift;
-  phases: StepsBySection;
+  sections: WarmupSection[];
 }): Promise<void> {
-  const rows = Object.entries(vars.phases).map(([phase, steps]) => ({
-    lift: vars.lift,
-    phase: Number(phase),
-    steps,
-  }));
-  check(await db().from("warmup_phases").upsert(rows, { onConflict: "user_id,lift,phase", defaultToNull: false }));
+  check(
+    await db()
+      .from("warmups")
+      .upsert(vars, { onConflict: "user_id,lift", defaultToNull: false })
+  );
 }
 
 // Rehab: one row per lift

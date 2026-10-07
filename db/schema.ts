@@ -44,21 +44,23 @@ type WarmupStepRow = {
   note?: string;
 };
 
-// One row per account x lift x warm-up phase (Rusin six-phase structure).
-// Steps carry their tick state; older rows may still hold plain strings,
-// so read through normalizeSteps().
-export const warmupPhases = pgTable(
-  "warmup_phases",
+// One row per account x lift holding that lift's whole warm-up: an ordered
+// list of sections the user controls (e.g. Dr John Rusin's six phases, or one
+// simple list), each with its exercises and their tick state. The app always
+// reads and writes a lift's warm-up as a whole; read through normalizeSections().
+export const warmups = pgTable(
+  "warmups",
   {
     userId: owner(),
     lift: text("lift", { enum: ["squat", "bench", "deadlift"] }).notNull(),
-    phase: integer("phase").notNull(),
-    steps: jsonb("steps").$type<WarmupStepRow[]>().notNull().default([]),
+    sections: jsonb("sections")
+      .$type<
+        { id: string; title: string; notes: string; steps: WarmupStepRow[] }[]
+      >()
+      .notNull()
+      .default([]),
   },
-  (t) => [
-    primaryKey({ columns: [t.userId, t.lift, t.phase] }),
-    ownRowsOnly(t.userId),
-  ]
+  (t) => [primaryKey({ columns: [t.userId, t.lift] }), ownRowsOnly(t.userId)]
 );
 
 // Rehab mirrors the warm-up exercise system: one flat list per account x lift

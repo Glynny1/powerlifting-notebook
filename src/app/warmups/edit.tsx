@@ -1,27 +1,21 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import ExerciseEditor from "@/components/ExerciseEditor";
 import { Loadable } from "@/components/Loadable";
-import { LiftPicker } from "@/components/Segmented";
-import { Screen, styles as ui, Txt } from "@/components/ui";
 import RequireLogin from "@/components/RequireLogin";
-import type { StepsBySection } from "@/data/api";
-import { keys, useSaveWarmups, useWarmups } from "@/data/queries";
-import { isLift, type Lift } from "@/lib/lifts";
-import { warmupSections } from "@/lib/warmup";
+import { LiftPicker } from "@/components/Segmented";
+import TemplatePicker from "@/components/TemplatePicker";
+import { Screen, styles as ui, Txt } from "@/components/ui";
+import WarmupEditor from "@/components/WarmupEditor";
+import { useWarmup, useWarmupActions } from "@/data/queries";
+import { isLift, liftLabel, type Lift } from "@/lib/lifts";
 
 export default function WarmupEditorScreen() {
   const params = useLocalSearchParams<{ lift?: string }>();
-  const queryClient = useQueryClient();
   const [lift, setLift] = useState<Lift>(
     params.lift && isLift(params.lift) ? params.lift : "squat"
   );
-  const query = useWarmups(lift);
-  const save = useSaveWarmups();
-
-  const phaseSteps = (phase: number) =>
-    queryClient.getQueryData<StepsBySection>(keys.warmups(lift))?.[phase] ?? [];
+  const query = useWarmup(lift);
+  const { update, applyTemplate } = useWarmupActions(lift);
 
   return (
     <Screen>
@@ -30,25 +24,24 @@ export default function WarmupEditorScreen() {
         message="Your warm-ups are saved to your account."
       >
         <Txt tone="secondary" style={ui.small}>
-          Changes save straight away. The Warm-ups tab shows the clean, tickable
-          version.
+          Changes save straight away. Rename sections, add notes, reorder them
+          with the arrows, and add the exercises you do in each one.
         </Txt>
         <LiftPicker value={lift} onChange={setLift} />
         <Loadable query={query}>
-          {(data) => (
-            <ExerciseEditor
-              sections={warmupSections(data)}
-              onAdd={(phase, step) =>
-                save.mutate({ lift, phases: { [phase]: [...phaseSteps(phase), step] } })
-              }
-              onRemove={(phase, index) =>
-                save.mutate({
-                  lift,
-                  phases: { [phase]: phaseSteps(phase).filter((_, i) => i !== index) },
-                })
-              }
-            />
-          )}
+          {(sections) =>
+            sections.length === 0 ? (
+              <TemplatePicker liftName={liftLabel(lift)} onPick={applyTemplate} />
+            ) : (
+              // Keyed by lift so section fields reset when switching lifts
+              <WarmupEditor
+                key={lift}
+                sections={sections}
+                liftName={liftLabel(lift)}
+                update={update}
+              />
+            )
+          }
         </Loadable>
       </RequireLogin>
     </Screen>

@@ -22,8 +22,9 @@ export const persistOptions = {
     key: "powerlifting-notebook-cache",
   }),
   maxAge: WEEK,
-  // Bump to throw away caches saved by older versions (2: data became per-account)
-  buster: "2",
+  // Bump to throw away caches saved by older versions
+  // (2: data became per-account, 3: warm-ups became editable sections)
+  buster: "3",
 };
 
 // Once nobody is signed in, drop everything kept from the last account,

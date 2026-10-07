@@ -8,14 +8,15 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import type { Lift } from "../src/lib/lifts";
 import { MAX_KEYS, MEET_DATE_KEY } from "../src/lib/meet";
-import type { WarmupStep } from "../src/lib/warmup";
+import { makeId, type WarmupStep } from "../src/lib/warmup";
+import { WARMUP_TEMPLATES } from "../src/lib/warmupTemplates";
 import * as schema from "./schema";
 import {
   calorieEntries,
   cues,
   rehabSteps,
   settings,
-  warmupPhases,
+  warmups,
   weightEntries,
 } from "./schema";
 
@@ -25,7 +26,7 @@ const step = (text: string, extra: Omit<WarmupStep, "text" | "done"> = {}) => ({
   ...extra,
 });
 
-// Six phases per lift, in order
+// Exercises for each of the six phases, per lift, in order
 const WARMUPS: Record<Lift, WarmupStep[][]> = {
   squat: [
     [
@@ -202,7 +203,7 @@ async function main() {
   const db = drizzle(client, { schema });
   const reset = process.argv.includes("--reset");
   const tables = [
-    warmupPhases,
+    warmups,
     rehabSteps,
     cues,
     weightEntries,
@@ -241,15 +242,19 @@ async function main() {
         for (const t of tables) await tx.delete(t).where(eq(t.userId, userId));
       }
 
-      await tx.insert(warmupPhases).values(
-        Object.entries(WARMUPS).flatMap(([lift, phases]) =>
-          phases.map((steps, i) => ({
-            userId,
-            lift: lift as Lift,
-            phase: i + 1,
-            steps,
-          }))
-        )
+      // Dummy exercises dropped into the six-phase template's sections
+      const sixPhase = WARMUP_TEMPLATES.find((t) => t.id === "rusin")!.sections;
+      await tx.insert(warmups).values(
+        Object.entries(WARMUPS).map(([lift, phases]) => ({
+          userId,
+          lift: lift as Lift,
+          sections: sixPhase.map((section, i) => ({
+            id: makeId(),
+            title: section.title,
+            notes: section.notes,
+            steps: phases[i] ?? [],
+          })),
+        }))
       );
       await tx.insert(rehabSteps).values(
         Object.entries(REHAB).map(([lift, steps]) => ({

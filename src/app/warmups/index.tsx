@@ -1,79 +1,89 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
 import ExerciseChecklist from "@/components/ExerciseChecklist";
 import HeaderButton from "@/components/HeaderButton";
 import { Loadable } from "@/components/Loadable";
-import { LiftPicker } from "@/components/Segmented";
-import { Screen, styles as ui, Txt } from "@/components/ui";
 import RequireLogin from "@/components/RequireLogin";
-import type { StepsBySection } from "@/data/api";
-import { keys, useSaveWarmups, useWarmups } from "@/data/queries";
-import type { Lift } from "@/lib/lifts";
+import { LiftPicker } from "@/components/Segmented";
+import TemplatePicker from "@/components/TemplatePicker";
+import { Screen } from "@/components/ui";
+import { useWarmup, useWarmupActions } from "@/data/queries";
 import { useSession } from "@/lib/auth";
+import { liftLabel, type Lift } from "@/lib/lifts";
 import { useRefresh } from "@/lib/navigation";
-import { warmupSections } from "@/lib/warmup";
+import { exampleFor } from "@/lib/warmupTemplates";
 
 export default function WarmupsScreen() {
   const session = useSession();
   const router = useRouter();
-  const queryClient = useQueryClient();
   const [lift, setLift] = useState<Lift>("squat");
-  const query = useWarmups(lift);
-  const save = useSaveWarmups();
+  const query = useWarmup(lift);
+  const { update, applyTemplate } = useWarmupActions(lift);
   const { refreshing, onRefresh } = useRefresh(query.refetch);
-
-  // Read the cache at tap time, not this render's copy, so quick taps don't undo each other
-  const latest = () =>
-    queryClient.getQueryData<StepsBySection>(keys.warmups(lift)) ?? {};
+  const hasWarmup = (query.data?.length ?? 0) > 0;
 
   return (
     <Screen refreshing={refreshing} onRefresh={onRefresh}>
       <Stack.Screen
         options={{
-          headerRight: session
-            ? () => (
-                <HeaderButton
-                  title="Edit"
-                  accessibilityLabel="Edit warm-ups"
-                  onPress={() =>
-                    router.push({ pathname: "/warmups/edit", params: { lift } })
-                  }
-                />
-              )
-            : undefined,
+          headerRight:
+            session && hasWarmup
+              ? () => (
+                  <HeaderButton
+                    title="Edit"
+                    accessibilityLabel="Edit warm-ups"
+                    onPress={() =>
+                      router.push({ pathname: "/warmups/edit", params: { lift } })
+                    }
+                  />
+                )
+              : undefined,
         }}
       />
       <RequireLogin
         title="Log in to see your warm-ups"
-        message="Your six-phase warm-ups are saved to your account. Log in to tick them off and make them your own."
+        message="Your warm-ups are saved to your account. Log in to tick them off and make them your own."
       >
-        <Txt tone="secondary" style={ui.small}>
-          Dr John Rusin&apos;s six-phase warm-up. Run it top to bottom, 6–10
-          minutes.
-        </Txt>
         <LiftPicker value={lift} onChange={setLift} />
         <Loadable query={query}>
-          {(data) => (
-            <ExerciseChecklist
-              sections={warmupSections(data)}
-              onToggle={(phase, index, done) => {
-                const steps = (latest()[phase] ?? []).map((s, i) =>
-                  i === index ? { ...s, done } : s
-                );
-                save.mutate({ lift, phases: { [phase]: steps } });
-              }}
-              onReset={() => {
-                const phases = Object.fromEntries(
-                  Object.entries(latest()).map(([phase, steps]) => [
-                    phase,
-                    steps.map((s) => ({ ...s, done: false })),
-                  ])
-                );
-                save.mutate({ lift, phases });
-              }}
-            />
-          )}
+          {(sections) =>
+            sections.length === 0 ? (
+              <TemplatePicker liftName={liftLabel(lift)} onPick={applyTemplate} />
+            ) : (
+              <ExerciseChecklist
+                sections={sections.map((s, i) => ({
+                  id: s.id,
+                  number: i + 1,
+                  title: s.title,
+                  blurb: s.notes || undefined,
+                  placeholder: exampleFor(s.title),
+                  steps: s.steps,
+                }))}
+                onToggle={(id, index, done) =>
+                  update((all) =>
+                    all.map((s) =>
+                      s.id === id
+                        ? {
+                            ...s,
+                            steps: s.steps.map((step, k) =>
+                              k === index ? { ...step, done } : step
+                            ),
+                          }
+                        : s
+                    )
+                  )
+                }
+                onReset={() =>
+                  update((all) =>
+                    all.map((s) => ({
+                      ...s,
+                      steps: s.steps.map((step) => ({ ...step, done: false })),
+                    }))
+                  )
+                }
+              />
+            )
+          }
         </Loadable>
       </RequireLogin>
     </Screen>

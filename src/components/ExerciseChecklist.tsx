@@ -8,7 +8,7 @@ import { formatReps, formatSeconds, type WarmupStep } from "@/lib/warmup";
 import { Button, Card, Chip, Divider, styles as ui, Txt } from "./ui";
 
 export type ExerciseSection = {
-  id: number;
+  id: string;
   number?: number; // phase badge
   title?: string;
   blurb?: string;
@@ -139,7 +139,7 @@ export default function ExerciseChecklist({
   onReset,
 }: {
   sections: ExerciseSection[];
-  onToggle: (sectionId: number, index: number, done: boolean) => void;
+  onToggle: (sectionId: string, index: number, done: boolean) => void;
   onReset: () => void;
 }) {
   const anyTicked = sections.some((s) => s.steps.some((step) => step.done));
